@@ -1,37 +1,38 @@
-import { useState, useEffect } from "react"
-import { Bell, MapPin } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react";
+import { Bell, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { useToast } from "@/hooks/use-toast"
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 
-import { LaundryFloorplan } from "./LaundryFloorplan"
-import { useMachineSetup, Machine } from "./MachineSetup"
-import { MachineCard } from "./MachineCard"  // Import the new MachineCard component
+import { LaundryFloorplan } from "./LaundryFloorplan";
+import { useMachineSetup, Machine } from "./MachineSetup";
+import { MachineCard } from "./MachineCard"; // Import the new MachineCard component
 
 export function LaundryMonitorComponent() {
-
-  const machines = useMachineSetup()
-  const [isFloorplanOpen, setIsFloorplanOpen] = useState(false)
-  const [selectedMachineId, setSelectedMachineId] = useState<number | null>(null)
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false)
-  const { toast } = useToast()
+  const machines = useMachineSetup();
+  const [isFloorplanOpen, setIsFloorplanOpen] = useState(false);
+  const [selectedMachineId, setSelectedMachineId] = useState<number | null>(
+    null
+  );
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Register the service worker for push notifications
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
+    if ("serviceWorker" in navigator && "PushManager" in window) {
       navigator.serviceWorker
-        .register('/service-worker.js')
+        .register("/service-worker.js")
         .then(function (registration) {
-          console.log('Service Worker registered', registration);
+          console.log("Service Worker registered", registration);
         })
         .catch(function (error) {
-          console.error('Service Worker registration failed:', error);
+          console.error("Service Worker registration failed:", error);
         });
     }
   }, []);
@@ -39,17 +40,17 @@ export function LaundryMonitorComponent() {
   const getStatusColor = (status: Machine["status"]) => {
     switch (status) {
       case "available":
-        return "bg-green-500"
+        return "bg-green-500";
       case "in-use":
-        return "bg-yellow-500"
+        return "bg-yellow-500";
       case "finishing-soon":
-        return "bg-orange-500"
+        return "bg-orange-500";
       case "complete":
-        return "bg-blue-500"
+        return "bg-blue-500";
       default:
-        return "bg-gray-500"
+        return "bg-gray-500";
     }
-  }
+  };
 
   const handleNotificationToggle = () => {
     if (notificationsEnabled) {
@@ -60,17 +61,17 @@ export function LaundryMonitorComponent() {
   };
 
   const requestNotificationPermission = () => {
-    Notification.requestPermission().then(permission => {
-      if (permission === 'granted') {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
         toast({
-          title: 'Notifications Enabled',
+          title: "Notifications Enabled",
           description: "You'll be notified when your laundry is done.",
         });
         subscribeUserToPush();
       } else {
         toast({
-          title: 'Notifications Disabled',
-          description: 'You denied the notification permission.',
+          title: "Notifications Disabled",
+          description: "You denied the notification permission.",
         });
       }
     });
@@ -81,46 +82,47 @@ export function LaundryMonitorComponent() {
       registration.pushManager
         .subscribe({
           userVisibleOnly: true,
-          applicationServerKey: 'BM6VW3YncLm4CzZ1zt3OT_PXH87VSN7q6WT8-eiBzHiuxMwY5F3HLJvjvBQMf_cVPdnZ7axmuE8Nd4VCl3wCj-M', // Replace with your actual VAPID public key
+          applicationServerKey:
+            "BM6VW3YncLm4CzZ1zt3OT_PXH87VSN7q6WT8-eiBzHiuxMwY5F3HLJvjvBQMf_cVPdnZ7axmuE8Nd4VCl3wCj-M", // Replace with your actual VAPID public key
         })
         .then(function (subscription) {
           // Send subscription to backend with machineId
           const machineId = selectedMachineId;
           fetch(`https://dllmnus.vercel.app/api/subscribe-machine`, {
-            method: 'POST',
+            method: "POST",
             body: JSON.stringify({ machineId, subscription }),
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
           }).then(() => {
-            console.log('Push subscription sent to server');
+            console.log("Push subscription sent to server");
             setNotificationsEnabled(true); // Set notifications enabled state
           });
         })
         .catch(function (error) {
-          console.error('Failed to subscribe the user:', error);
+          console.error("Failed to subscribe the user:", error);
         });
     });
   };
 
   const unsubscribeFromPushNotifications = () => {
     navigator.serviceWorker.ready.then(function (registration) {
-      registration.pushManager.getSubscription().then(subscription => {
+      registration.pushManager.getSubscription().then((subscription) => {
         if (subscription) {
           subscription.unsubscribe().then(() => {
             const machineId = selectedMachineId;
             fetch(`https://dllmnus.vercel.app/api/unsubscribe-machine`, {
-              method: 'POST',
+              method: "POST",
               body: JSON.stringify({ machineId, subscription }),
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
               },
             }).then(() => {
-              console.log('Push subscription removed from server');
+              console.log("Push subscription removed from server");
               setNotificationsEnabled(false); // Set notifications disabled state
               toast({
-                title: 'Notifications Disabled',
-                description: 'You will no longer receive notifications.',
+                title: "Notifications Disabled",
+                description: "You will no longer receive notifications.",
               });
             });
           });
@@ -130,36 +132,43 @@ export function LaundryMonitorComponent() {
   };
 
   const handleSelectMachine = (machineId: number) => {
-    setSelectedMachineId(machineId)
-  }
+    setSelectedMachineId(machineId);
+  };
 
   const closeMachineDialog = () => {
-    setSelectedMachineId(null)
-  }
+    setSelectedMachineId(null);
+  };
 
   const washers = machines
-  .filter(machine => machine.type === "washer" && machine.status !== "disabled")
-  .sort((a, b) => a.id - b.id); // Sort washers by id in ascending order
+    .filter(
+      (machine) => machine.type === "washer" && machine.status !== "disabled"
+    )
+    .sort((a, b) => a.id - b.id); // Sort washers by id in ascending order
 
-const dryers = machines
-  .filter(machine => machine.type === "dryer" && machine.status !== "disabled")
-  .sort((a, b) => a.id - b.id); // Sort dryers by id in ascending order
-
-
+  const dryers = machines
+    .filter(
+      (machine) => machine.type === "dryer" && machine.status !== "disabled"
+    )
+    .sort((a, b) => a.id - b.id); // Sort dryers by id in ascending order
 
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Laundry Monitor</h1>
         <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={() => setIsFloorplanOpen(true)}>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setIsFloorplanOpen(true)}
+          >
             <MapPin className="h-4 w-4" />
             <span className="sr-only">Open floorplan</span>
           </Button>
-          <Button variant="outline" size="icon" onClick={handleNotificationToggle}>
-            <Bell className="h-4 w-4" />
-
-          </Button>
+          {/* 
+<Button variant="outline" size="icon" onClick={handleNotificationToggle}>
+  <Bell className="h-4 w-4" />
+</Button>
+*/}
         </div>
       </header>
 
@@ -201,18 +210,20 @@ const dryers = machines
         </section>
       </div>
 
-
       <Dialog open={isFloorplanOpen} onOpenChange={setIsFloorplanOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
+      <DialogContent className="max-w-full sm:max-w-3xl sm:h-auto h-full">
+      <DialogHeader>
             <DialogTitle>Laundry Room Floorplan</DialogTitle>
             <DialogDescription>
               Click on a machine to view its details
             </DialogDescription>
           </DialogHeader>
-          <LaundryFloorplan machines={machines} onSelectMachine={handleSelectMachine} />
+          <LaundryFloorplan
+            machines={machines}
+            onSelectMachine={handleSelectMachine}
+          />
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
