@@ -1,36 +1,29 @@
-export type Machine = {
-  id: number;
-  status: "available" | "in-use" | "finishing-soon" | "complete" | "disabled";
-  type: "washer" | "dryer";
-  position: {
-    x: number;
-    y: number;
-  };
-};
+import { Machine } from './types';
 
 
 type LaundryFloorplanProps = {
   machines: Machine[]
-  onSelectMachine: (machineId: number) => void
+  onSelectMachine: (machineId: string) => void
 }
 
 export function LaundryFloorplan({ machines, onSelectMachine }: LaundryFloorplanProps) {
-  const getStatusColor = (status: Machine["status"]) => {
+
+  const getFillColor = (status: Machine["status"]) => {
     switch (status) {
       case "available":
-        return "bg-green-500"
+        return "#4CAF50"; // Hex color for green
       case "in-use":
-        return "bg-yellow-500"
+        return "#FFC107"; // Hex color for yellow
       case "finishing-soon":
-        return "bg-orange-500"
+        return "#FF9800"; // Hex color for orange
       case "complete":
-        return "bg-blue-500"
+        return "#2196F3"; // Hex color for blue
       case "disabled":
-        return "bg-gray-400"  // Greyed out for disabled machines
+        return "#BDBDBD"; // Hex color for grey
       default:
-        return "bg-gray-500"
+        return "#9E9E9E"; // Default grey
     }
-  }
+  };
 
   return (
     <div className="relative w-full h-[60vh] bg-gray-100 rounded-lg overflow-hidden">
@@ -49,7 +42,7 @@ export function LaundryFloorplan({ machines, onSelectMachine }: LaundryFloorplan
               cx={machine.position.x}
               cy={machine.position.y}
               r="5"
-              fill={getStatusColor(machine.status)}
+              fill={getFillColor(machine.status)} // Color based on status
               className={machine.status !== "disabled" ? "hover:stroke-2 hover:stroke-gray-700" : ""}
             />
             <text
@@ -59,7 +52,7 @@ export function LaundryFloorplan({ machines, onSelectMachine }: LaundryFloorplan
               fontSize="3"
               className="pointer-events-none"
             >
-              {machine.type === "washer" ? "W" : "D"}{machine.id}
+              {machine.shortName}
             </text>
           </g>
         ))}

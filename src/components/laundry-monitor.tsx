@@ -11,13 +11,13 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 import { LaundryFloorplan } from "./LaundryFloorplan";
-import { useMachineSetup, Machine } from "./MachineSetup";
+import { useMachineSetup } from "./MachineSetup";
 import { MachineCard } from "./MachineCard"; // Import the new MachineCard component
 
 export function LaundryMonitorComponent() {
   const machines = useMachineSetup();
   const [isFloorplanOpen, setIsFloorplanOpen] = useState(false);
-  const [selectedMachineId, setSelectedMachineId] = useState<number | null>(
+  const [selectedMachineId, setSelectedMachineId] = useState<string | null>(
     null
   );
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -131,7 +131,7 @@ export function LaundryMonitorComponent() {
     });
   };
 
-  const handleSelectMachine = (machineId: number) => {
+  const handleSelectMachine = (machineId: string) => {
     setSelectedMachineId(machineId);
   };
 
@@ -140,16 +140,27 @@ export function LaundryMonitorComponent() {
   };
 
   const washers = machines
-    .filter(
-      (machine) => machine.type === "washer" && machine.status !== "disabled"
-    )
-    .sort((a, b) => a.id - b.id); // Sort washers by id in ascending order
+  .filter(
+    (machine) => machine.type === "washer" && machine.status !== "disabled"
+  )
+  .sort((a, b) => {
+    // Extract the numeric part of the id for comparison
+    const washerIdA = parseInt(a.id.replace(/\D/g, ""), 10);
+    const washerIdB = parseInt(b.id.replace(/\D/g, ""), 10);
+    return washerIdA - washerIdB; // Sort washers by extracted numeric id in ascending order
+  });
 
-  const dryers = machines
-    .filter(
-      (machine) => machine.type === "dryer" && machine.status !== "disabled"
-    )
-    .sort((a, b) => a.id - b.id); // Sort dryers by id in ascending order
+const dryers = machines
+  .filter(
+    (machine) => machine.type === "dryer" && machine.status !== "disabled"
+  )
+  .sort((a, b) => {
+    // Extract the numeric part of the id for comparison
+    const dryerIdA = parseInt(a.id.replace(/\D/g, ""), 10);
+    const dryerIdB = parseInt(b.id.replace(/\D/g, ""), 10);
+    return dryerIdA - dryerIdB; // Sort dryers by extracted numeric id in ascending order
+  });
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -213,7 +224,7 @@ export function LaundryMonitorComponent() {
       <Dialog open={isFloorplanOpen} onOpenChange={setIsFloorplanOpen}>
       <DialogContent className="max-w-full sm:max-w-3xl sm:h-auto h-full">
       <DialogHeader>
-            <DialogTitle>Laundry Room Floorplan</DialogTitle>
+            <DialogTitle>RVREB Laundry Room Floorplan</DialogTitle>
             <DialogDescription>
               Click on a machine to view its details
             </DialogDescription>

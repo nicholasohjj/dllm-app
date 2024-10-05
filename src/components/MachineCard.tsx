@@ -17,14 +17,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-
-type Machine = {
-  id: number;
-  type: "washer" | "dryer";
-  status: "available" | "in-use" | "finishing-soon" | "complete" | "disabled";
-  timeRemaining: number; // In minutes
-  position: { x: number; y: number };
-};
+import { Machine } from './types';
 
 interface MachineCardProps {
   machine: Machine;
@@ -85,7 +78,7 @@ export function MachineCard({
         >
           <CardHeader className="pb-2">
             <CardTitle>
-              {machine.type === "washer" ? "Washer" : "Dryer"} {machine.id}
+              {machine.type === "washer" ? "Washer" : "Dryer"} {machine.shortName}
             </CardTitle>
             <CardDescription>
               <Badge
@@ -119,7 +112,7 @@ export function MachineCard({
         <DialogContent className="max-w-full sm:max-w-md sm:h-auto h-full">
         <DialogHeader>
             <DialogTitle>
-              {machine.type === "washer" ? "Washer" : "Dryer"} {machine.id} Details
+              {machine.type === "washer" ? "Washer" : "Dryer"} {machine.shortName} Details
             </DialogTitle>
             <DialogDescription>
               Current status: {machine.status.replace("-", " ")}
@@ -138,7 +131,9 @@ export function MachineCard({
               <p className="text-center text-lg font-medium text-blue-600">
                 Your laundry is ready for pickup!
               </p>
+              {/*
               <Button className="w-full">Mark as collected</Button>
+              */}
             </div>
           ) : (
             <div className="space-y-4">
