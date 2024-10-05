@@ -86,7 +86,7 @@ export function LaundryMonitorComponent() {
         .then(function (subscription) {
           // Send subscription to backend with machineId
           const machineId = selectedMachineId;
-          fetch(`https://your-vercel-app.vercel.app/api/subscribe-machine`, {
+          fetch(`https://dllmnus.vercel.app/api/subscribe-machine`, {
             method: 'POST',
             body: JSON.stringify({ machineId, subscription }),
             headers: {
@@ -109,7 +109,7 @@ export function LaundryMonitorComponent() {
         if (subscription) {
           subscription.unsubscribe().then(() => {
             const machineId = selectedMachineId;
-            fetch(`https://your-vercel-app.vercel.app/api/unsubscribe-machine`, {
+            fetch(`https://dllmnus.vercel.app/api/unsubscribe-machine`, {
               method: 'POST',
               body: JSON.stringify({ machineId, subscription }),
               headers: {
