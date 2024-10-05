@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LaundryFloorplan } from "./LaundryFloorplan";
 import { useMachineSetup } from "./MachineSetup";
 import { MachineCard } from "./MachineCard"; // Import the new MachineCard component
+import { Machine } from './types';
 
 export function LaundryMonitorComponent() {
   const machines = useMachineSetup();

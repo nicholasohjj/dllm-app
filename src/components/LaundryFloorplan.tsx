@@ -25,7 +25,28 @@ export function LaundryFloorplan({ machines, onSelectMachine }: LaundryFloorplan
     }
   };
 
+  const legendItems = [
+    { status: "available", label: "Available" },
+    { status: "in-use", label: "In Use" },
+    { status: "finishing-soon", label: "Finishing Soon" },
+    { status: "complete", label: "Complete" },
+    { status: "disabled", label: "Disabled" },
+  ] as const;
+
   return (
+    // lEGEND
+    <>
+    <div className="flex flex-wrap justify-center gap-2">
+      {legendItems.map((item) => (
+        <div key={item.status} className="flex items-center gap-1">
+          <div
+            className="w-4 h-4 rounded-full"
+            style={{ backgroundColor: getFillColor(item.status) }}
+          />
+          <span>{item.label}</span>
+        </div>
+      ))}
+      </div>
     <div className="relative w-full h-[60vh] bg-gray-100 rounded-lg overflow-hidden">
       <svg width="100%" height="100%" viewBox="0 0 100 160" className="absolute inset-0">
         <rect x="10" y="10" width="80" height="140" fill="none" stroke="black" strokeWidth="0.5" />
@@ -56,7 +77,10 @@ export function LaundryFloorplan({ machines, onSelectMachine }: LaundryFloorplan
             </text>
           </g>
         ))}
+
+        
       </svg>
     </div>
+    </>
   )
 }
