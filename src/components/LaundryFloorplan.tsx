@@ -1,4 +1,13 @@
-import { Machine } from "./LaundryMonitorComponent"
+export type Machine = {
+  id: number;
+  status: "available" | "in-use" | "finishing-soon" | "complete" | "disabled";
+  type: "washer" | "dryer";
+  position: {
+    x: number;
+    y: number;
+  };
+};
+
 
 type LaundryFloorplanProps = {
   machines: Machine[]

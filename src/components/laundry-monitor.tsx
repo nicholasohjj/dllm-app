@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Bell, Loader2, MapPin } from "lucide-react"
+import { Bell, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -145,7 +145,6 @@ const dryers = machines
   .filter(machine => machine.type === "dryer" && machine.status !== "disabled")
   .sort((a, b) => a.id - b.id); // Sort dryers by id in ascending order
 
-  const sortedMachines = [...washers, ...dryers]
 
 
   return (
@@ -174,9 +173,6 @@ const dryers = machines
                 machine={machine}
                 getStatusColor={getStatusColor}
                 handleNotification={handleNotificationToggle}
-                setMachines={(updatedMachines) => {
-                  // Update the machines state here
-                }}
                 machines={machines}
                 isOpen={selectedMachineId === machine.id}
                 onClose={closeMachineDialog}
@@ -195,9 +191,6 @@ const dryers = machines
                 machine={machine}
                 getStatusColor={getStatusColor}
                 handleNotification={handleNotificationToggle}
-                setMachines={(updatedMachines) => {
-                  // Update the machines state here
-                }}
                 machines={machines}
                 isOpen={selectedMachineId === machine.id}
                 onClose={closeMachineDialog}

@@ -18,7 +18,6 @@ interface MachineCardProps {
   machine: Machine;
   getStatusColor: (status: Machine["status"]) => string;
   handleNotification: () => void;
-  setMachines: (updatedMachines: Machine[]) => void;
   machines: Machine[];
   isOpen: boolean; // Control dialog visibility from parent
   onClose: () => void; // Parent function to handle closing the dialog
@@ -29,8 +28,6 @@ export function MachineCard({
   machine,
   getStatusColor,
   handleNotification,
-  setMachines,
-  machines,
   isOpen,
   onClose,
   onClick,
@@ -123,13 +120,6 @@ export function MachineCard({
             <p className="text-center text-lg font-medium text-blue-600">Your laundry is ready for pickup!</p>
             <Button
               className="w-full"
-              onClick={() =>
-                setMachines(
-                  machines.map((m) =>
-                    m.id === machine.id ? { ...m, status: "available", timeRemaining: 0 } : m
-                  )
-                )
-              }
             >
               Mark as collected
             </Button>
