@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { MapPin, RefreshCw, Search, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,11 +86,6 @@ export function LaundryMonitorComponent() {
   }, []); // Run only once on component mount
 
   useEffect(() => {
-    // Log whenever the machines state changes to verify updates
-    console.log("Machines updated:", machines);
-  }, [machines]);
-
-  useEffect(() => {
     document.body.classList.toggle("dark", isDarkMode);
   }, [isDarkMode]);
 
@@ -108,24 +103,24 @@ export function LaundryMonitorComponent() {
     }
   }, []);
 
-  const getAvailableMachinesCount = (type: "washer" | "dryer") => {
+  const getAvailableMachinesCount = useCallback((type: "washer" | "dryer") => {
     return machines.filter(
       (machine) => machine.type === type && machine.status === "available"
-    ).length;
-  };
+    ).length
+  }, [machines])
 
-  const getEstimatedWaitTime = (type: "washer" | "dryer") => {
+  const getEstimatedWaitTime = useCallback((type: "washer" | "dryer") => {
     const inUseMachines = machines.filter(
       (machine) => machine.type === type && machine.status === "in-use"
-    );
-    if (inUseMachines.length === 0) return 0;
+    )
+    if (inUseMachines.length === 0) return 0
     const avgTimeRemaining =
       inUseMachines.reduce(
         (sum, machine) => sum + (machine.timeRemaining || 0),
         0
-      ) / inUseMachines.length;
-    return Math.ceil(avgTimeRemaining);
-  };
+      ) / inUseMachines.length
+    return Math.ceil(avgTimeRemaining)
+  }, [machines])
 
   const getStatusColor = useCallback((status: Machine["status"]) => {
     const statusColors = {
@@ -176,8 +171,8 @@ export function LaundryMonitorComponent() {
     [filterStatus, searchQuery, sortBy]
   );
 
-  const washers = sortMachines(machines, "washer");
-  const dryers = sortMachines(machines, "dryer");
+  const washers = useMemo(() => sortMachines(machines, "washer"), [machines, sortMachines])
+  const dryers = useMemo(() => sortMachines(machines, "dryer"), [machines, sortMachines])
 
   const formatLastUpdated = (date: Date | null) => {
     if (!date) return "Never";
