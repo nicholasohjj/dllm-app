@@ -1,4 +1,5 @@
 import { Machine } from "./types";
+import { motion } from "framer-motion";
 
 type LaundryFloorplanProps = {
   machines: Machine[];
@@ -36,15 +37,17 @@ export function LaundryFloorplan({
 
   return (
     // lEGEND
-    <>
-      <div className="flex flex-wrap justify-center gap-2">
+    <div className="space-y-4">
+      <div className="flex flex-wrap justify-center gap-4 p-4 bg-background rounded-lg shadow">
+        {" "}
         {legendItems.map((item) => (
-          <div key={item.status} className="flex items-center gap-1">
+          <div key={item.status} className="flex items-center gap-2">
             <div
               className="w-4 h-4 rounded-full"
               style={{ backgroundColor: getFillColor(item.status) }}
+              aria-hidden="true"
             />
-            <span>{item.label}</span>
+            <span className="text-sm font-medium">{item.label}</span>{" "}
           </div>
         ))}
       </div>
@@ -54,6 +57,7 @@ export function LaundryFloorplan({
           height="100%"
           viewBox="0 0 100 160"
           className="absolute inset-0"
+          aria-label="Laundry room floorplan"
         >
           <rect
             x="10"
@@ -79,16 +83,24 @@ export function LaundryFloorplan({
                   : "cursor-pointer"
               }
             >
-              <circle
+              <motion.circle
                 cx={machine.position.x}
                 cy={machine.position.y}
                 r="5"
                 fill={getFillColor(machine.status)} // Color based on status
+                animate={{
+                  scale: 1,
+                }}
+                onClick={() =>
+                  machine.status !== "disabled" && onSelectMachine(machine.id)
+                }
                 className={
                   machine.status !== "disabled"
                     ? "hover:stroke-2 hover:stroke-gray-700"
                     : ""
                 }
+                role="button"
+                tabIndex={machine.status !== "disabled" ? 0 : -1}
               />
               <text
                 x={machine.position.x}
@@ -103,6 +115,6 @@ export function LaundryFloorplan({
           ))}
         </svg>
       </div>
-    </>
+    </div>
   );
 }
