@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -16,8 +16,15 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "./ui/button";
-import { Loader2, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+} from "lucide-react";
 import { Machine } from "./types";
 
 interface MachineCardProps {
@@ -36,9 +43,12 @@ export function MachineCard({
   onClick,
 }: MachineCardProps) {
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const [remainingTime, setRemainingTime] = useState(
     machine.timeRemaining || 0
   );
+  const { toast } = useToast();
+
   useEffect(() => {
     if (machine.status === "in-use" || machine.status === "finishing-soon") {
       const totalTime = 34; // Assuming 34 minutes max time
@@ -60,25 +70,84 @@ export function MachineCard({
     return "Almost done!";
   }, [remainingTime]);
 
-  const getStatusIcon = useCallback(() => {
+  const getStatusIcon = useMemo(() => {
     switch (machine.status) {
       case "in-use":
       case "finishing-soon":
-        return <Clock className="h-5 w-5 text-yellow-500" />;
+        return <Clock className="h-5 w-5 text-yellow-500" aria-hidden="true" />;
       case "complete":
-        return <CheckCircle2 className="h-5 w-5 text-blue-500" />;
+        return (
+          <CheckCircle2 className="h-5 w-5 text-blue-500" aria-hidden="true" />
+        );
       case "available":
-        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+        return (
+          <CheckCircle2 className="h-5 w-5 text-green-500" aria-hidden="true" />
+        );
       default:
-        return <AlertCircle className="h-5 w-5 text-gray-500" />;
+        return (
+          <AlertCircle className="h-5 w-5 text-gray-500" aria-hidden="true" />
+        );
     }
   }, [machine.status]);
 
-  const formatTime = (seconds: number) => {
+  const formatTime = useCallback((seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-  };
+  }, []);
+
+  const cardContent = useMemo(() => {
+    if (error) {
+      return (
+        <p className="text-sm font-medium text-red-600">
+          Error: {error}. Please try again later.
+        </p>
+      );
+    }
+
+    switch (machine.status) {
+      case "in-use":
+      case "finishing-soon":
+        return (
+          <div className="space-y-2">
+            <Progress
+              value={progress}
+              className="w-full"
+              aria-label={`${Math.round(progress)}% complete`}
+            />
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-muted-foreground">
+                {getTimeEstimate()}
+              </p>
+              <p className="text-sm font-medium">{formatTime(remainingTime)}</p>
+            </div>
+          </div>
+        );
+      case "complete":
+        return (
+          <p className="text-sm font-medium text-blue-600">Ready for pickup!</p>
+        );
+      case "available":
+        return (
+          <p className="text-sm font-medium text-green-600">
+            Start your laundry now!
+          </p>
+        );
+      default:
+        return (
+          <p className="text-sm font-medium text-gray-600">
+            This machine is not supported.
+          </p>
+        );
+    }
+  }, [
+    error,
+    machine.status,
+    progress,
+    getTimeEstimate,
+    remainingTime,
+    formatTime,
+  ]);
 
   return (
     <>
@@ -92,7 +161,7 @@ export function MachineCard({
               {machine.type === "washer" ? "Washer" : "Dryer"}{" "}
               {machine.shortName}
             </span>
-            {getStatusIcon()}
+            {getStatusIcon}
           </CardTitle>
           <CardDescription>
             <Badge
@@ -103,34 +172,7 @@ export function MachineCard({
             </Badge>
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {machine.status === "in-use" ||
-          machine.status === "finishing-soon" ? (
-            <div className="space-y-2">
-              <Progress value={progress} className="w-full" />
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-muted-foreground">
-                  {getTimeEstimate()}
-                </p>
-                <p className="text-sm font-medium">
-                  {formatTime(remainingTime)}
-                </p>
-              </div>
-            </div>
-          ) : machine.status === "complete" ? (
-            <p className="text-sm font-medium text-blue-600">
-              Ready for pickup!
-            </p>
-          ) : machine.status === "available" ? (
-            <p className="text-sm font-medium text-green-600">
-              Start your laundry now!
-            </p>
-          ) : (
-            <p className="text-sm font-medium text-gray-600">
-              This machine is not supported.
-            </p>
-          )}
-        </CardContent>
+        <CardContent>{cardContent}</CardContent>
       </Card>
 
       <Dialog open={isOpen} onOpenChange={onClose} key={machine.id}>
@@ -144,38 +186,57 @@ export function MachineCard({
               Current status: {machine.status.replace("-", " ")}
             </DialogDescription>
           </DialogHeader>
-          {machine.status === "in-use" ||
-          machine.status === "finishing-soon" ? (
-            <div className="space-y-4">
-              <Progress value={progress} className="w-full" />
-              <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold">
-                  {formatTime(remainingTime)}
-                </span>
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
-              <span className="text-2xl font-bold">{getTimeEstimate()}</span>
-            </div>
-          ) : machine.status === "complete" ? (
-            <div className="space-y-4">
-              <p className="text-center text-lg font-medium text-blue-600">
-                Your laundry is ready for pickup!
-              </p>
-            </div>
-          ) : machine.status === "available" ? (
-            <div className="space-y-4">
-              <p className="text-center text-lg font-medium text-green-600">
-                This machine is available for use.
-              </p>
-            </div>
+          {error ? (
+            <p className="text-center text-lg font-medium text-red-600">
+              Error: {error}. Please try again later.
+            </p>
           ) : (
-            <div className="space-y-4">
-              <p className="text-center text-lg font-medium text-gray-600">
-                This machine is not supported.
-              </p>
-            </div>
+            <>
+              {(machine.status === "in-use" ||
+                machine.status === "finishing-soon") && (
+                <div className="space-y-4">
+                  <Progress
+                    value={progress}
+                    className="w-full"
+                    aria-label={`${Math.round(progress)}% complete`}
+                  />
+                  <div className="flex justify-between items-center">
+                    <span className="text-2xl font-bold">
+                      {formatTime(remainingTime)}
+                    </span>
+                    <Loader2
+                      className="h-6 w-6 animate-spin"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <span className="text-2xl font-bold">
+                    {getTimeEstimate()}
+                  </span>
+                </div>
+              )}
+              {machine.status === "complete" && (
+                <div className="space-y-4">
+                  <p className="text-center text-lg font-medium text-blue-600">
+                    Your laundry is ready for pickup!
+                  </p>
+                </div>
+              )}
+              {machine.status === "available" && (
+                <div className="space-y-4">
+                  <p className="text-center text-lg font-medium text-green-600">
+                    This machine is available for use.
+                  </p>
+                </div>
+              )}
+              {machine.status === "disabled" && (
+                <div className="space-y-4">
+                  <p className="text-center text-lg font-medium text-gray-600">
+                    This machine is not supported.
+                  </p>
+                </div>
+              )}
+            </>
           )}
-          
           <DialogClose asChild>
             <Button className="w-full mt-4">Close</Button>
           </DialogClose>
