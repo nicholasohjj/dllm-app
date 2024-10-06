@@ -1,5 +1,4 @@
 import { Machine } from "./types";
-import { motion } from "framer-motion";
 
 type LaundryFloorplanProps = {
   machines: Machine[];
@@ -83,17 +82,11 @@ export function LaundryFloorplan({
                   : "cursor-pointer"
               }
             >
-              <motion.circle
+              <circle
                 cx={machine.position.x}
                 cy={machine.position.y}
                 r="5"
                 fill={getFillColor(machine.status)} // Color based on status
-                animate={{
-                  scale: 1,
-                }}
-                onClick={() =>
-                  machine.status !== "disabled" && onSelectMachine(machine.id)
-                }
                 className={
                   machine.status !== "disabled"
                     ? "hover:stroke-2 hover:stroke-gray-700"
