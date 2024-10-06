@@ -25,6 +25,7 @@ import { MachineCard } from "./MachineCard"; // Import the new MachineCard compo
 import { Machine } from "./types";
 import { useSocket } from "./useSocket"
 import { Skeleton } from "@/components/ui/skeleton"
+import { WelcomeScreen } from "./WelcomeScreen"
 
 export function LaundryMonitorComponent() {
   const [machines, setMachines] = useState<Machine[]>(useMachineSetup());
@@ -38,6 +39,8 @@ export function LaundryMonitorComponent() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("id");
   const [isLoading, setIsLoading] = useState(true)
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(false)
+
   const { socket, isConnected } = useSocket("https://mint-mountain-accordion.glitch.me/")
 
   useEffect(() => {
@@ -61,6 +64,13 @@ export function LaundryMonitorComponent() {
       darkModeMediaQuery.removeEventListener("change", handleDarkModeChange);
     };
   }, []);
+
+  useEffect(() => {
+    const welcomeScreenSeen = localStorage.getItem('welcomeScreenSeen')
+    if (!welcomeScreenSeen) {
+      setShowWelcomeScreen(true)
+    }
+  }, [])
 
   useEffect(() => {
     if (isConnected && socket) {  // Ensure socket is not null
@@ -315,6 +325,12 @@ export function LaundryMonitorComponent() {
             </DialogClose>
           </DialogContent>
         </Dialog>
+
+        <WelcomeScreen
+          isOpen={showWelcomeScreen}
+          onClose={() => setShowWelcomeScreen(false)}
+        />
+        
       </div>
       <footer className="p-4 bg-white dark:bg-gray-800 shadow-sm mt-auto">
         <p className="text-center text-sm text-muted-foreground">

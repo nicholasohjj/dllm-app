@@ -9,3 +9,8 @@ export type Machine = {
     position: { x: number; y: number };
   };
   
+
+export interface WelcomeScreenProps {
+  isOpen: boolean
+  onClose: () => void
+}
