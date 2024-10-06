@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { MapPin, RefreshCw } from "lucide-react";
+import { MapPin, RefreshCw, Search, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
+import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch";
 import { LaundryFloorplan } from "./LaundryFloorplan";
 import { useMachineSetup } from "./MachineSetup";
 import { MachineCard } from "./MachineCard"; // Import the new MachineCard component
@@ -25,6 +33,10 @@ export function LaundryMonitorComponent() {
   const [selectedMachineId, setSelectedMachineId] = useState<string | null>(
     null
   );
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [sortBy, setSortBy] = useState("id");
 
   useEffect(() => {
     // Initialize the socket connection inside useEffect
@@ -56,6 +68,10 @@ export function LaundryMonitorComponent() {
   }, [machines]);
 
   useEffect(() => {
+    document.body.classList.toggle("dark", isDarkMode);
+  }, [isDarkMode]);
+
+  useEffect(() => {
     // Register the service worker for push notifications
     if ("serviceWorker" in navigator && "PushManager" in window) {
       navigator.serviceWorker
@@ -68,6 +84,23 @@ export function LaundryMonitorComponent() {
         });
     }
   }, []);
+
+  const getAvailableMachinesCount = (type: "washer" | "dryer") => {
+    return machines.filter(
+      (machine) => machine.type === type && machine.status === "available"
+    ).length
+  }
+
+  const getEstimatedWaitTime = (type: "washer" | "dryer") => {
+    const inUseMachines = machines.filter(
+      (machine) => machine.type === type && machine.status === "in-use"
+    )
+    if (inUseMachines.length === 0) return 0
+    const avgTimeRemaining =
+      inUseMachines.reduce((sum, machine) => sum + (machine.timeRemaining || 0), 0) /
+      inUseMachines.length
+    return Math.ceil(avgTimeRemaining)
+  }
 
   const getStatusColor = useCallback((status: Machine["status"]) => {
     const statusColors = {
@@ -108,7 +141,8 @@ export function LaundryMonitorComponent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
+    <div className={`min-h-screen flex flex-col ${isDarkMode ? "dark" : ""}`}>
+      {" "}
       <div className="container mx-auto px-4 py-8 flex-grow">
         <header className="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
           <h1 className="text-3xl font-bold text-center sm:text-left">
@@ -121,10 +155,21 @@ export function LaundryMonitorComponent() {
             >
               <MapPin className="mr-2 h-4 w-4" /> Floorplan
             </Button>
-            <div className="flex items-center text-sm text-gray-600">
+            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              {" "}
               <RefreshCw className="mr-2 h-4 w-4" />
               Last updated: {formatLastUpdated(lastUpdated)}
             </div>
+            <Switch
+              checked={isDarkMode}
+              onCheckedChange={setIsDarkMode}
+              className="ml-2"
+            />
+            {isDarkMode ? (
+              <Moon className="h-4 w-4 text-gray-400" />
+            ) : (
+              <Sun className="h-4 w-4 text-yellow-400" />
+            )}
             {/* 
 <Button variant="outline" size="icon" onClick={handleNotificationToggle}>
   <Bell className="h-4 w-4" />
@@ -133,9 +178,65 @@ export function LaundryMonitorComponent() {
           </div>
         </header>
 
+        <div className="mb-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+          <div className="flex space-x-2">
+            <Badge variant="secondary">
+              Available Washers: {getAvailableMachinesCount("washer")}
+            </Badge>
+            <Badge variant="secondary">
+              Available Dryers: {getAvailableMachinesCount("dryer")}
+            </Badge>
+          </div>
+          <div className="flex space-x-2">
+            <Badge variant="outline">
+              Est. Washer Wait: {getEstimatedWaitTime("washer")} min
+            </Badge>
+            <Badge variant="outline">
+              Est. Dryer Wait: {getEstimatedWaitTime("dryer")} min
+            </Badge>
+          </div>
+        </div>
+
+        <div className="mb-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+            <Input
+              type="text"
+              placeholder="Search machines..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8"
+            />
+          </div>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="available">Available</SelectItem>
+              <SelectItem value="finishing-soon">Finishing Soon</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="id">Machine ID</SelectItem>
+              <SelectItem value="status">Status</SelectItem>
+              <SelectItem value="timeRemaining">Time Remaining</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="space-y-8">
           {["Washers", "Dryers"].map((type) => (
-            <section key={type} className="bg-white rounded-lg shadow-md p-6">
+            <section
+              key={type}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+            >
+              {" "}
               <h2 className="text-2xl font-semibold mb-4">{type}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {(type === "Washers" ? washers : dryers).map((machine) => (
@@ -168,7 +269,8 @@ export function LaundryMonitorComponent() {
           </DialogContent>
         </Dialog>
       </div>
-      <footer className="p-4 bg-white shadow-sm mt-auto">
+      <footer className="p-4 bg-white dark:bg-gray-800 shadow-sm mt-auto">
+        {" "}
         <p className="text-center text-sm text-muted-foreground">
           DLLM Laundry - Smart IoT-based Laundry Management
         </p>
