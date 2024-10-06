@@ -92,8 +92,6 @@ export function LaundryFloorplan({
                     ? "hover:stroke-2 hover:stroke-gray-700"
                     : ""
                 }
-                role="button"
-                tabIndex={machine.status !== "disabled" ? 0 : -1}
               />
               <text
                 x={machine.position.x}
