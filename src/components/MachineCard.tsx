@@ -107,9 +107,13 @@ export function MachineCard({
             <p className="text-sm font-medium text-blue-600">
               Ready for pickup!
             </p>
-          ) : (
+          ) : machine.status === "available" ? (
             <p className="text-sm font-medium text-green-600">
               Start your laundry now!
+            </p>
+          ) : (
+            <p className="text-sm font-medium text-gray-600">
+              This machine is not supported.
             </p>
           )}
         </CardContent>
@@ -117,7 +121,6 @@ export function MachineCard({
 
       <Dialog open={isOpen} onOpenChange={onClose} key={machine.id}>
         <DialogContent className="sm:max-w-md">
-          {" "}
           <DialogHeader>
             <DialogTitle>
               {machine.type === "washer" ? "Washer" : "Dryer"}{" "}
@@ -142,10 +145,16 @@ export function MachineCard({
                 Your laundry is ready for pickup!
               </p>
             </div>
-          ) : (
+          ) : machine.status === "available" ? (
             <div className="space-y-4">
               <p className="text-center text-lg font-medium text-green-600">
                 This machine is available for use.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-center text-lg font-medium text-gray-600">
+                This machine is not supported.
               </p>
             </div>
           )}

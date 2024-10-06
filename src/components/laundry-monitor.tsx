@@ -8,6 +8,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -144,16 +145,35 @@ export function LaundryMonitorComponent() {
   const sortMachines = useCallback(
     (machines: Machine[], type: "washer" | "dryer") => {
       return machines
-        .filter(
-          (machine) => machine.type === type && machine.status !== "disabled"
+        .filter((machine) => machine.type === type)
+        .filter((machine) => {
+          if (filterStatus === "all") return true;
+          if (filterStatus === "available")
+            return machine.status === "available";
+          if (filterStatus === "finishing-soon")
+            return machine.status === "finishing-soon";
+          return true;
+        })
+        .filter((machine) =>
+          machine.id.toLowerCase().includes(searchQuery.toLowerCase())
         )
         .sort((a, b) => {
-          const idA = parseInt(a.id.replace(/\D/g, ""), 10);
-          const idB = parseInt(b.id.replace(/\D/g, ""), 10);
-          return idA - idB;
+          if (sortBy === "id") {
+            return (
+              parseInt(a.id.replace(/\D/g, ""), 10) -
+              parseInt(b.id.replace(/\D/g, ""), 10)
+            );
+          }
+          if (sortBy === "status") {
+            return a.status.localeCompare(b.status);
+          }
+          if (sortBy === "timeRemaining") {
+            return (a.timeRemaining || 0) - (b.timeRemaining || 0);
+          }
+          return 0;
         });
     },
-    []
+    [filterStatus, searchQuery, sortBy]
   );
 
   const washers = sortMachines(machines, "washer");
@@ -185,16 +205,16 @@ export function LaundryMonitorComponent() {
               Last updated: {formatLastUpdated(lastUpdated)}
             </div>
             <div className="flex items-center space-x-2">
-            <Switch
-              checked={isDarkMode}
-              onCheckedChange={setIsDarkMode}
-              className="ml-2"
-            />
-            {isDarkMode ? (
-              <Moon className="h-4 w-4 text-gray-400" />
-            ) : (
-              <Sun className="h-4 w-4 text-yellow-400" />
-            )}
+              <Switch
+                checked={isDarkMode}
+                onCheckedChange={setIsDarkMode}
+                className="ml-2"
+              />
+              {isDarkMode ? (
+                <Moon className="h-4 w-4 text-gray-400" />
+              ) : (
+                <Sun className="h-4 w-4 text-yellow-400" />
+              )}
             </div>
             {/* 
 <Button variant="outline" size="icon" onClick={handleNotificationToggle}>
@@ -292,11 +312,13 @@ export function LaundryMonitorComponent() {
               machines={machines}
               onSelectMachine={handleSelectMachine}
             />
+            <DialogClose asChild>
+              <Button className="w-full mt-4">Close</Button>
+            </DialogClose>
           </DialogContent>
         </Dialog>
       </div>
       <footer className="p-4 bg-white dark:bg-gray-800 shadow-sm mt-auto">
-        {" "}
         <p className="text-center text-sm text-muted-foreground">
           DLLM Laundry - Smart IoT-based Laundry Management
         </p>
