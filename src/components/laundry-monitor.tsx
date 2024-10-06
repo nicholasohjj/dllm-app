@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Bell, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EnvelopeOpenIcon } from "@radix-ui/react-icons"
 import {
   Dialog,
   DialogContent,
@@ -164,17 +165,15 @@ const dryers = machines
 
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Laundry Monitor</h1>
+<div className="bg-gray-100">
+      <div className="container mx-auto px-4 py-8 ">
+      <header className="flex justify-between items-center mb-8 ">
+        <h1 className="text-3xl font-bold">DLLM Laundry Monitor</h1>
         <div className="flex gap-2">
           <Button
-            variant="outline"
-            size="icon"
             onClick={() => setIsFloorplanOpen(true)}
           >
-            <MapPin className="h-4 w-4" />
-            <span className="sr-only">Open floorplan</span>
+            <MapPin className="mr-2 h-4 w-4" />  Floorplan
           </Button>
           {/* 
 <Button variant="outline" size="icon" onClick={handleNotificationToggle}>
@@ -236,6 +235,14 @@ const dryers = machines
           />
         </DialogContent>
       </Dialog>
+
+
     </div>
+    <footer className="p-4 bg-white shadow-sm mt-auto">
+        <p className="text-center text-sm text-muted-foreground">
+          DLLM Laundry - Smart IoT-based Laundry Management
+        </p>
+      </footer>
+  </div>
   );
 }
