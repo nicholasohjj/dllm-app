@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { MapPin, RefreshCw, Search, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -15,8 +15,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { LaundryFloorplan } from "./LaundryFloorplan";
 import { useMachineSetup } from "./MachineSetup";
@@ -37,6 +37,28 @@ export function LaundryMonitorComponent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("id");
+
+  useEffect(() => {
+    // Check system preference for dark mode
+    const darkModeMediaQuery = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    );
+
+    // Set the initial dark mode state based on system preference
+    setIsDarkMode(darkModeMediaQuery.matches);
+
+    // Listen for changes in the system preference and update accordingly
+    const handleDarkModeChange = (event: MediaQueryListEvent) => {
+      setIsDarkMode(event.matches);
+    };
+
+    darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      darkModeMediaQuery.removeEventListener("change", handleDarkModeChange);
+    };
+  }, []);
 
   useEffect(() => {
     // Initialize the socket connection inside useEffect
@@ -88,19 +110,21 @@ export function LaundryMonitorComponent() {
   const getAvailableMachinesCount = (type: "washer" | "dryer") => {
     return machines.filter(
       (machine) => machine.type === type && machine.status === "available"
-    ).length
-  }
+    ).length;
+  };
 
   const getEstimatedWaitTime = (type: "washer" | "dryer") => {
     const inUseMachines = machines.filter(
       (machine) => machine.type === type && machine.status === "in-use"
-    )
-    if (inUseMachines.length === 0) return 0
+    );
+    if (inUseMachines.length === 0) return 0;
     const avgTimeRemaining =
-      inUseMachines.reduce((sum, machine) => sum + (machine.timeRemaining || 0), 0) /
-      inUseMachines.length
-    return Math.ceil(avgTimeRemaining)
-  }
+      inUseMachines.reduce(
+        (sum, machine) => sum + (machine.timeRemaining || 0),
+        0
+      ) / inUseMachines.length;
+    return Math.ceil(avgTimeRemaining);
+  };
 
   const getStatusColor = useCallback((status: Machine["status"]) => {
     const statusColors = {
