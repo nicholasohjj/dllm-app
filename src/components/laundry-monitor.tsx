@@ -184,6 +184,7 @@ export function LaundryMonitorComponent() {
               <RefreshCw className="mr-2 h-4 w-4" />
               Last updated: {formatLastUpdated(lastUpdated)}
             </div>
+            <div className="flex items-center space-x-2">
             <Switch
               checked={isDarkMode}
               onCheckedChange={setIsDarkMode}
@@ -194,6 +195,7 @@ export function LaundryMonitorComponent() {
             ) : (
               <Sun className="h-4 w-4 text-yellow-400" />
             )}
+            </div>
             {/* 
 <Button variant="outline" size="icon" onClick={handleNotificationToggle}>
   <Bell className="h-4 w-4" />
