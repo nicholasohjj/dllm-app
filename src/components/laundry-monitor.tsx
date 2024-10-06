@@ -32,7 +32,7 @@ export function LaundryMonitorComponent() {
   const [isFloorplanOpen, setIsFloorplanOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [selectedMachineId, setSelectedMachineId] = useState<string | null>(
-    null
+    null,
   );
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,7 +42,7 @@ export function LaundryMonitorComponent() {
   useEffect(() => {
     // Check system preference for dark mode
     const darkModeMediaQuery = window.matchMedia(
-      "(prefers-color-scheme: dark)"
+      "(prefers-color-scheme: dark)",
     );
 
     // Set the initial dark mode state based on system preference
@@ -103,24 +103,30 @@ export function LaundryMonitorComponent() {
     }
   }, []);
 
-  const getAvailableMachinesCount = useCallback((type: "washer" | "dryer") => {
-    return machines.filter(
-      (machine) => machine.type === type && machine.status === "available"
-    ).length
-  }, [machines])
+  const getAvailableMachinesCount = useCallback(
+    (type: "washer" | "dryer") => {
+      return machines.filter(
+        (machine) => machine.type === type && machine.status === "available",
+      ).length;
+    },
+    [machines],
+  );
 
-  const getEstimatedWaitTime = useCallback((type: "washer" | "dryer") => {
-    const inUseMachines = machines.filter(
-      (machine) => machine.type === type && machine.status === "in-use"
-    )
-    if (inUseMachines.length === 0) return 0
-    const avgTimeRemaining =
-      inUseMachines.reduce(
-        (sum, machine) => sum + (machine.timeRemaining || 0),
-        0
-      ) / inUseMachines.length
-    return Math.ceil(avgTimeRemaining)
-  }, [machines])
+  const getEstimatedWaitTime = useCallback(
+    (type: "washer" | "dryer") => {
+      const inUseMachines = machines.filter(
+        (machine) => machine.type === type && machine.status === "in-use",
+      );
+      if (inUseMachines.length === 0) return 0;
+      const avgTimeRemaining =
+        inUseMachines.reduce(
+          (sum, machine) => sum + (machine.timeRemaining || 0),
+          0,
+        ) / inUseMachines.length;
+      return Math.ceil(avgTimeRemaining);
+    },
+    [machines],
+  );
 
   const getStatusColor = useCallback((status: Machine["status"]) => {
     const statusColors = {
@@ -150,7 +156,7 @@ export function LaundryMonitorComponent() {
           return true;
         })
         .filter((machine) =>
-          machine.id.toLowerCase().includes(searchQuery.toLowerCase())
+          machine.id.toLowerCase().includes(searchQuery.toLowerCase()),
         )
         .sort((a, b) => {
           if (sortBy === "id") {
@@ -168,11 +174,17 @@ export function LaundryMonitorComponent() {
           return 0;
         });
     },
-    [filterStatus, searchQuery, sortBy]
+    [filterStatus, searchQuery, sortBy],
   );
 
-  const washers = useMemo(() => sortMachines(machines, "washer"), [machines, sortMachines])
-  const dryers = useMemo(() => sortMachines(machines, "dryer"), [machines, sortMachines])
+  const washers = useMemo(
+    () => sortMachines(machines, "washer"),
+    [machines, sortMachines],
+  );
+  const dryers = useMemo(
+    () => sortMachines(machines, "dryer"),
+    [machines, sortMachines],
+  );
 
   const formatLastUpdated = (date: Date | null) => {
     if (!date) return "Never";

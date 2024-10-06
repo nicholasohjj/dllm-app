@@ -37,7 +37,7 @@ export function MachineCard({
 }: MachineCardProps) {
   const [progress, setProgress] = useState(0);
   const [remainingTime, setRemainingTime] = useState(
-    machine.timeRemaining || 0
+    machine.timeRemaining || 0,
   );
   useEffect(() => {
     if (machine.status === "in-use" || machine.status === "finishing-soon") {
@@ -175,7 +175,7 @@ export function MachineCard({
               </p>
             </div>
           )}
-          
+
           <DialogClose asChild>
             <Button className="w-full mt-4">Close</Button>
           </DialogClose>
