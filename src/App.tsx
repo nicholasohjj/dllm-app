@@ -1,12 +1,13 @@
-import { LaundryMonitorComponent } from "./components/laundry-monitor";
-import { Toaster } from "@/components/ui/toaster";
+import { LaundryMonitorComponent } from './components/laundry-monitor'
+import { Toaster } from '@/components/ui/toaster'
 function App() {
+
   return (
     <>
-      <Toaster />
-      <LaundryMonitorComponent />
+    <Toaster />
+    <LaundryMonitorComponent />
     </>
-  );
+  )
 }
 
-export default App;
+export default App
