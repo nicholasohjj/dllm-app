@@ -36,11 +36,14 @@ export function MachineCard({
   onClick,
 }: MachineCardProps) {
   const [progress, setProgress] = useState(0);
-
+  const [remainingTime, setRemainingTime] = useState(
+    machine.timeRemaining || 0
+  );
   useEffect(() => {
     if (machine.status === "in-use" || machine.status === "finishing-soon") {
       const totalTime = 34; // Assuming 34 minutes max time
       const remaining = machine.timeRemaining || 0;
+      setRemainingTime(remaining);
 
       // Calculate progress based on time remaining
       const initialPercentage = ((totalTime - remaining) / totalTime) * 100;
@@ -50,12 +53,12 @@ export function MachineCard({
     }
   }, [machine.status, machine.timeRemaining]);
 
-  const getTimeEstimate = () => {
-    if (progress < 30) return "More than 20 minutes remaining";
-    if (progress < 60) return "Less than 20 minutes remaining";
-    if (progress < 90) return "Finishing soon...";
+  const getTimeEstimate = useCallback(() => {
+    if (remainingTime > 20 * 60) return "More than 20 minutes remaining";
+    if (remainingTime > 10 * 60) return "Less than 20 minutes remaining";
+    if (remainingTime > 5 * 60) return "Finishing soon...";
     return "Almost done!";
-  };
+  }, [remainingTime]);
 
   const getStatusIcon = useCallback(() => {
     switch (machine.status) {
@@ -70,6 +73,12 @@ export function MachineCard({
         return <AlertCircle className="h-5 w-5 text-gray-500" />;
     }
   }, [machine.status]);
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
 
   return (
     <>
@@ -99,9 +108,14 @@ export function MachineCard({
           machine.status === "finishing-soon" ? (
             <div className="space-y-2">
               <Progress value={progress} className="w-full" />
-              <p className="text-sm text-muted-foreground">
-                {getTimeEstimate()}
-              </p>
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-muted-foreground">
+                  {getTimeEstimate()}
+                </p>
+                <p className="text-sm font-medium">
+                  {formatTime(remainingTime)}
+                </p>
+              </div>
             </div>
           ) : machine.status === "complete" ? (
             <p className="text-sm font-medium text-blue-600">
@@ -135,9 +149,12 @@ export function MachineCard({
             <div className="space-y-4">
               <Progress value={progress} className="w-full" />
               <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold">{getTimeEstimate()}</span>
+                <span className="text-2xl font-bold">
+                  {formatTime(remainingTime)}
+                </span>
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
+              <span className="text-2xl font-bold">{getTimeEstimate()}</span>
             </div>
           ) : machine.status === "complete" ? (
             <div className="space-y-4">
@@ -158,6 +175,7 @@ export function MachineCard({
               </p>
             </div>
           )}
+          
           <DialogClose asChild>
             <Button className="w-full mt-4">Close</Button>
           </DialogClose>
