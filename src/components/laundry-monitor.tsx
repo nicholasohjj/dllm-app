@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Bell, MapPin } from "lucide-react";
+import { MapPin, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -9,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
 
 import { LaundryFloorplan } from "./LaundryFloorplan";
 import { useMachineSetup } from "./MachineSetup";
@@ -22,22 +21,21 @@ let socket: Socket | null = null;
 export function LaundryMonitorComponent() {
   const [machines, setMachines] = useState<Machine[]>(useMachineSetup());
   const [isFloorplanOpen, setIsFloorplanOpen] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [selectedMachineId, setSelectedMachineId] = useState<string | null>(
     null
   );
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     // Initialize the socket connection inside useEffect
-    socket = io('https://mint-mountain-accordion.glitch.me/', {
+    socket = io("https://mint-mountain-accordion.glitch.me/", {
       withCredentials: true, // Allow credentials for CORS
-      transports: ['websocket', 'polling'] // Use both WebSocket and polling
+      transports: ["websocket", "polling"], // Use both WebSocket and polling
     });
 
     // Listen for real-time updates from the server
-    socket.on('machineData', (updatedMachines: Machine[]) => {
-      console.log('Received updated machine data:', updatedMachines); // Log the updates
+    socket.on("machineData", (updatedMachines: Machine[]) => {
+      console.log("Received updated machine data:", updatedMachines); // Log the updates
 
       // Update the machines state with new data from the server
       setMachines(updatedMachines);
@@ -53,7 +51,7 @@ export function LaundryMonitorComponent() {
 
   useEffect(() => {
     // Log whenever the machines state changes to verify updates
-    console.log('Machines updated:', machines);
+    console.log("Machines updated:", machines);
   }, [machines]);
 
   useEffect(() => {
@@ -81,90 +79,8 @@ export function LaundryMonitorComponent() {
     return statusColors[status] || "bg-gray-500";
   }, []);
 
-  const handleNotificationToggle = useCallback(() => {
-    if (notificationsEnabled) {
-      unsubscribeFromPushNotifications();
-    } else {
-      requestNotificationPermission();
-    }
-  }, [notificationsEnabled]);
-
-  const requestNotificationPermission = useCallback(() => {
-    Notification.requestPermission().then((permission) => {
-      if (permission === "granted") {
-        toast({
-          title: "Notifications Enabled",
-          description: "You'll be notified when your laundry is done.",
-        });
-        subscribeUserToPush();
-      } else {
-        toast({
-          title: "Notifications Disabled",
-          description: "You denied the notification permission.",
-        });
-      }
-    });
-  }, [toast]);
-
-  const subscribeUserToPush = useCallback(() => {
-    navigator.serviceWorker.ready.then((registration) => {
-      registration.pushManager
-        .subscribe({
-          userVisibleOnly: true,
-          applicationServerKey:
-            "BM6VW3YncLm4CzZ1zt3OT_PXH87VSN7q6WT8-eiBzHiuxMwY5F3HLJvjvBQMf_cVPdnZ7axmuE8Nd4VCl3wCj-M",
-        })
-        .then((subscription) => {
-          fetch(`${API_BASE_URL}/subscribe-machine`, {
-            method: "POST",
-            body: JSON.stringify({
-              machineId: selectedMachineId,
-              subscription,
-            }),
-            headers: { "Content-Type": "application/json" },
-          }).then(() => {
-            console.log("Push subscription sent to server");
-            setNotificationsEnabled(true);
-          });
-        })
-        .catch((error) =>
-          console.error("Failed to subscribe the user:", error)
-        );
-    });
-  }, [selectedMachineId]);
-
-  const unsubscribeFromPushNotifications = useCallback(() => {
-    navigator.serviceWorker.ready.then((registration) => {
-      registration.pushManager.getSubscription().then((subscription) => {
-        if (subscription) {
-          subscription.unsubscribe().then(() => {
-            fetch(`${API_BASE_URL}/unsubscribe-machine`, {
-              method: "POST",
-              body: JSON.stringify({
-                machineId: selectedMachineId,
-                subscription,
-              }),
-              headers: { "Content-Type": "application/json" },
-            }).then(() => {
-              console.log("Push subscription removed from server");
-              setNotificationsEnabled(false);
-              toast({
-                title: "Notifications Disabled",
-                description: "You will no longer receive notifications.",
-              });
-            });
-          });
-        }
-      });
-    });
-  }, [selectedMachineId, toast]);
-
   const handleSelectMachine = (machineId: string) => {
     setSelectedMachineId(machineId);
-  };
-
-  const closeMachineDialog = () => {
-    setSelectedMachineId(null);
   };
 
   const sortMachines = useCallback(
@@ -185,15 +101,29 @@ export function LaundryMonitorComponent() {
   const washers = sortMachines(machines, "washer");
   const dryers = sortMachines(machines, "dryer");
 
+  const formatLastUpdated = (date: Date | null) => {
+    if (!date) return "Never";
+    return date.toLocaleTimeString();
+  };
+
   return (
-<div className="min-h-screen flex flex-col bg-gray-100">
-<div className="container mx-auto px-4 py-8 flex-grow">
-        <header className="flex justify-between items-center mb-8 ">
-          <h1 className="text-3xl font-bold">DLLM Laundry Monitor</h1>
-          <div className="flex gap-2">
-            <Button onClick={() => setIsFloorplanOpen(true)}>
+    <div className="min-h-screen flex flex-col bg-gray-100">
+      <div className="container mx-auto px-4 py-8 flex-grow">
+        <header className="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
+          <h1 className="text-3xl font-bold text-center sm:text-left">
+            DLLM Laundry Monitor
+          </h1>
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <Button
+              onClick={() => setIsFloorplanOpen(true)}
+              className="w-full sm:w-auto"
+            >
               <MapPin className="mr-2 h-4 w-4" /> Floorplan
             </Button>
+            <div className="flex items-center text-sm text-gray-600">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Last updated: {formatLastUpdated(lastUpdated)}
+            </div>
             {/* 
 <Button variant="outline" size="icon" onClick={handleNotificationToggle}>
   <Bell className="h-4 w-4" />
@@ -204,16 +134,14 @@ export function LaundryMonitorComponent() {
 
         <div className="space-y-8">
           {["Washers", "Dryers"].map((type) => (
-            <section key={type}>
+            <section key={type} className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-2xl font-semibold mb-4">{type}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {(type === "Washers" ? washers : dryers).map((machine) => (
                   <MachineCard
                     key={machine.id}
                     machine={machine}
                     getStatusColor={getStatusColor}
-                    handleNotification={handleNotificationToggle}
-                    machines={machines}
                     isOpen={selectedMachineId === machine.id}
                     onClose={() => setSelectedMachineId(null)}
                     onClick={() => setSelectedMachineId(machine.id)}
@@ -225,7 +153,7 @@ export function LaundryMonitorComponent() {
         </div>
 
         <Dialog open={isFloorplanOpen} onOpenChange={setIsFloorplanOpen}>
-          <DialogContent className="max-w-full sm:max-w-3xl sm:h-auto h-full">
+          <DialogContent className="w-full max-w-3xl h-[80vh] overflow-auto">
             <DialogHeader>
               <DialogTitle>RVREB Laundry Room Floorplan</DialogTitle>
               <DialogDescription>
