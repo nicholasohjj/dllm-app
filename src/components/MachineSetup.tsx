@@ -1,5 +1,7 @@
 import { Machine } from './types';
 
+
+
 const generateMachines = (): Machine[] => {
   const washers = Array.from({ length: 8 }, (_, i) => {
     const washerNumber = 8 - i;

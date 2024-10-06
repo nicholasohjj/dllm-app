@@ -15,7 +15,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Machine } from './types';
 
@@ -23,7 +22,6 @@ interface MachineCardProps {
   machine: Machine;
   getStatusColor: (status: Machine["status"]) => string;
   handleNotification: () => void;
-  machines: Machine[];
   isOpen: boolean; // Control dialog visibility from parent
   onClose: () => void; // Parent function to handle closing the dialog
   onClick: () => void; // Handle click on card to open dialog
@@ -40,28 +38,17 @@ export function MachineCard({
     const [progress, setProgress] = useState(0);
   
     useEffect(() => {
-      let interval: NodeJS.Timeout | undefined;
-  
       if (machine.status === "in-use" || machine.status === "finishing-soon") {
-        interval = setInterval(() => {
-          setProgress((prev) => {
-            if (prev < 95) {
-              return prev + Math.random() * 3;
-            }
-            return prev;
-          });
-        }, 2000);
+        const totalTime = 34; // Assuming 34 minutes max time
+        const remaining = machine.timeRemaining || 0;
+
+        // Calculate progress based on time remaining
+        const initialPercentage = ((totalTime - remaining) / totalTime) * 100;
+        setProgress(initialPercentage);
+      } else if (machine.status === "complete") {
+        setProgress(100); // Mark complete
       }
-  
-      if (machine.status === "complete") {
-        setProgress(100);
-        clearInterval(interval);
-      }
-  
-      return () => {
-        clearInterval(interval);
-      };
-    }, [machine.status]);
+    }, [machine.status, machine.timeRemaining]);
   
     const getTimeEstimate = () => {
       if (progress < 30) return "More than 20 minutes remaining";
@@ -131,9 +118,6 @@ export function MachineCard({
               <p className="text-center text-lg font-medium text-blue-600">
                 Your laundry is ready for pickup!
               </p>
-              {/*
-              <Button className="w-full">Mark as collected</Button>
-              */}
             </div>
           ) : (
             <div className="space-y-4">
@@ -146,4 +130,3 @@ export function MachineCard({
       </Dialog>
     );
   }
-  
