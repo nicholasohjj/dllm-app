@@ -37,7 +37,8 @@ export function LaundryMonitorComponent() {
     socket.on("machineData", (updatedMachines: Machine[]) => {
       console.log("Received updated machine data:", updatedMachines); // Log the updates
 
-      // Update the machines state with new data from the server
+      // Update the machines state with new data from the server]
+      setLastUpdated(new Date());
       setMachines(updatedMachines);
     });
 
