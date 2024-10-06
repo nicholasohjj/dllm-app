@@ -23,9 +23,8 @@ import { LaundryFloorplan } from "./LaundryFloorplan";
 import { useMachineSetup } from "./MachineSetup";
 import { MachineCard } from "./MachineCard"; // Import the new MachineCard component
 import { Machine } from "./types";
-import { io, Socket } from "socket.io-client";
-
-let socket: Socket | null = null;
+import { useSocket } from "./useSocket"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function LaundryMonitorComponent() {
   const [machines, setMachines] = useState<Machine[]>(useMachineSetup());
@@ -38,6 +37,8 @@ export function LaundryMonitorComponent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("id");
+  const [isLoading, setIsLoading] = useState(true)
+  const { socket, isConnected } = useSocket("https://mint-mountain-accordion.glitch.me/")
 
   useEffect(() => {
     // Check system preference for dark mode
@@ -62,28 +63,22 @@ export function LaundryMonitorComponent() {
   }, []);
 
   useEffect(() => {
-    // Initialize the socket connection inside useEffect
-    socket = io("https://mint-mountain-accordion.glitch.me/", {
-      withCredentials: true, // Allow credentials for CORS
-      transports: ["websocket", "polling"], // Use both WebSocket and polling
-    });
-
-    // Listen for real-time updates from the server
-    socket.on("machineData", (updatedMachines: Machine[]) => {
-      console.log("Received updated machine data:", updatedMachines); // Log the updates
-
-      // Update the machines state with new data from the server]
-      setLastUpdated(new Date());
-      setMachines(updatedMachines);
-    });
-
-    // Cleanup the socket connection when the component unmounts
-    return () => {
-      if (socket) {
-        socket.disconnect();
+    if (isConnected && socket) {  // Ensure socket is not null
+      setIsLoading(false)
+      
+      // Add the listener for machineData
+      socket.on("machineData", (updatedMachines: Machine[]) => {
+        setLastUpdated(new Date())
+        setMachines(updatedMachines)
+      })
+      
+      // Cleanup the listener when the component is unmounted or socket changes
+      return () => {
+        socket.off("machineData")  // Clean up the listener to avoid memory leaks
       }
-    };
-  }, []); // Run only once on component mount
+    }
+  }, [isConnected, socket])
+  
 
   useEffect(() => {
     document.body.classList.toggle("dark", isDarkMode);
@@ -277,8 +272,15 @@ export function LaundryMonitorComponent() {
               key={type}
               className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
             >
-              {" "}
+              
               <h2 className="text-2xl font-semibold mb-4">{type}</h2>
+              {isLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {Array.from({ length: 8 }).map((_, index) => (
+                    <Skeleton key={index} className="h-40 w-full" />
+                  ))}
+                </div>
+              ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {(type === "Washers" ? washers : dryers).map((machine) => (
                   <MachineCard
@@ -291,6 +293,7 @@ export function LaundryMonitorComponent() {
                   />
                 ))}
               </div>
+              )}
             </section>
           ))}
         </div>
