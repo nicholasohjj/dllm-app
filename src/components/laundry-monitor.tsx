@@ -40,6 +40,7 @@ export function LaundryMonitorComponent() {
   const [sortBy, setSortBy] = useState("id");
   const [isLoading, setIsLoading] = useState(true)
   const [showWelcomeScreen, setShowWelcomeScreen] = useState(false)
+  const [preferredMachines, setPreferredMachines] = useState<string[]>([])
 
   const { socket, isConnected } = useSocket("https://mint-mountain-accordion.glitch.me/")
 
@@ -93,6 +94,23 @@ export function LaundryMonitorComponent() {
   useEffect(() => {
     document.body.classList.toggle("dark", isDarkMode);
   }, [isDarkMode]);
+
+  useEffect(() => {
+    const savedPreferences = localStorage.getItem('preferredMachines')
+    if (savedPreferences) {
+      setPreferredMachines(JSON.parse(savedPreferences))
+    }
+  }, [])
+
+  const togglePreferredMachine = (machineId: string) => {
+    setPreferredMachines(prev => {
+      const newPreferences = prev.includes(machineId)
+        ? prev.filter(id => id !== machineId)
+        : [...prev, machineId]
+      localStorage.setItem('preferredMachines', JSON.stringify(newPreferences))
+      return newPreferences
+    })
+  }
 
   useEffect(() => {
     // Register the service worker for push notifications
@@ -183,6 +201,34 @@ export function LaundryMonitorComponent() {
     if (!date) return "Never";
     return date.toLocaleTimeString();
   };
+
+  const renderMachineSection = (type: "Washers" | "Dryers") => (
+    <section key={type} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <h2 className="text-2xl font-semibold mb-4">{type}</h2>
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <Skeleton key={index} className="h-40 w-full" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {(type === "Washers" ? washers : dryers).map((machine) => (
+            <MachineCard
+              key={machine.id}
+              machine={machine}
+              getStatusColor={getStatusColor}
+              isOpen={selectedMachineId === machine.id}
+              onClose={() => setSelectedMachineId(null)}
+              onClick={() => setSelectedMachineId(machine.id)}
+              isPreferred={preferredMachines.includes(machine.id)}
+              onTogglePreferred={() => togglePreferredMachine(machine.id)}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  )
 
   return (
     <div className={`min-h-screen flex flex-col ${isDarkMode ? "dark" : ""}`}>
@@ -276,23 +322,13 @@ export function LaundryMonitorComponent() {
           </Select>
         </div>
 
-        <div className="space-y-8">
-          {["Washers", "Dryers"].map((type) => (
-            <section
-              key={type}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
-            >
-              
-              <h2 className="text-2xl font-semibold mb-4">{type}</h2>
-              {isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {Array.from({ length: 8 }).map((_, index) => (
-                    <Skeleton key={index} className="h-40 w-full" />
-                  ))}
-                </div>
-              ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {(type === "Washers" ? washers : dryers).map((machine) => (
+        {preferredMachines.length > 0 && (
+          <section className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+            <h2 className="text-2xl font-semibold mb-4">Preferred Machines</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {machines
+                .filter(machine => preferredMachines.includes(machine.id))
+                .map(machine => (
                   <MachineCard
                     key={machine.id}
                     machine={machine}
@@ -300,12 +336,17 @@ export function LaundryMonitorComponent() {
                     isOpen={selectedMachineId === machine.id}
                     onClose={() => setSelectedMachineId(null)}
                     onClick={() => setSelectedMachineId(machine.id)}
+                    isPreferred={true}
+                    onTogglePreferred={() => togglePreferredMachine(machine.id)}
                   />
                 ))}
-              </div>
-              )}
-            </section>
-          ))}
+            </div>
+          </section>
+        )}
+
+        <div className="space-y-8">
+          {renderMachineSection("Washers")}
+          {renderMachineSection("Dryers")}
         </div>
 
         <Dialog open={isFloorplanOpen} onOpenChange={setIsFloorplanOpen}>

@@ -16,14 +16,13 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
 import { Button } from "./ui/button";
 import {
   Loader2,
   AlertCircle,
   CheckCircle2,
   Clock,
-  AlertTriangle,
+  Star,
 } from "lucide-react";
 import { Machine } from "./types";
 
@@ -33,6 +32,8 @@ interface MachineCardProps {
   isOpen: boolean; // Control dialog visibility from parent
   onClose: () => void; // Parent function to handle closing the dialog
   onClick: () => void; // Handle click on card to open dialog
+  isPreferred: boolean
+  onTogglePreferred: () => void
 }
 
 export function MachineCard({
@@ -41,13 +42,14 @@ export function MachineCard({
   isOpen,
   onClose,
   onClick,
+  isPreferred,
+  onTogglePreferred,
 }: MachineCardProps) {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [remainingTime, setRemainingTime] = useState(
     machine.timeRemaining || 0
   );
-  const { toast } = useToast();
 
   useEffect(() => {
     if (machine.status === "in-use" || machine.status === "finishing-soon") {
@@ -157,11 +159,30 @@ export function MachineCard({
       >
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between">
-            <span>
+          <span>
               {machine.type === "washer" ? "Washer" : "Dryer"}{" "}
               {machine.shortName}
             </span>
-            {getStatusIcon}
+            <div className="flex items-center space-x-2">
+              {getStatusIcon}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onTogglePreferred()
+                }}
+              >
+                <Star
+                  className={`h-5 w-5 ${
+                    isPreferred ? "text-yellow-400 fill-current" : "text-gray-400"
+                  }`}
+                />
+                <span className="sr-only">
+                  {isPreferred ? "Remove from preferred" : "Add to preferred"}
+                </span>
+              </Button>
+            </div>
           </CardTitle>
           <CardDescription>
             <Badge
