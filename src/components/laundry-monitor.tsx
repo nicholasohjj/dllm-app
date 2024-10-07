@@ -106,6 +106,31 @@ export function LaundryMonitorComponent() {
     }
   }, []);
 
+  useEffect(() => {
+    // Check if the user has a saved preference
+    const savedDarkMode = localStorage.getItem("darkMode");
+    if (savedDarkMode) {
+      setIsDarkMode(savedDarkMode === "true");
+    } else {
+      // If no preference is saved, use system preference
+      const darkModeMediaQuery = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      );
+      setIsDarkMode(darkModeMediaQuery.matches);
+  
+      // Listen for system preference changes
+      const handleDarkModeChange = (event: MediaQueryListEvent) => {
+        setIsDarkMode(event.matches);
+      };
+      darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
+  
+      return () => {
+        darkModeMediaQuery.removeEventListener("change", handleDarkModeChange);
+      };
+    }
+  }, []);
+  
+
   const togglePreferredMachine = (machineId: string) => {
     setPreferredMachines((prev) => {
       const newPreferences = prev.includes(machineId)
@@ -249,6 +274,11 @@ export function LaundryMonitorComponent() {
     </section>
   );
 
+  const handleDarkModeToggle = (checked: boolean) => {
+    setIsDarkMode(checked);
+    localStorage.setItem("darkMode", checked.toString());
+  };
+
   return (
     <div className={`min-h-screen flex flex-col ${isDarkMode ? "dark" : ""}`}>
       {" "}
@@ -286,7 +316,7 @@ export function LaundryMonitorComponent() {
             <div className="flex items-center space-x-2">
               <Switch
                 checked={isDarkMode}
-                onCheckedChange={setIsDarkMode}
+                onCheckedChange={handleDarkModeToggle}
                 className="ml-2"
               />
               {isDarkMode ? (
