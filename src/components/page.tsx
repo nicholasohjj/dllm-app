@@ -29,8 +29,8 @@ export default function CatchAllPage() {
       <p className="text-xl mb-8">The page you're looking for doesn't exist.</p>
       {slug && (
         <p className="mb-4">
-          You tried to access: /{slug.join("/")}
-        </p>
+          You tried to access: /{slug}
+          </p>
       )}
       <Link to="/" className="text-blue-500 hover:underline">
         Go back to homepage
