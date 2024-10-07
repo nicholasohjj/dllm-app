@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { MapPin, RefreshCw, Search, Sun, Moon, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.svg";
+import SplashScreen from "./splashScreen";
 
 export function LaundryMonitorComponent() {
   const [machines, setMachines] = useState<Machine[]>(useMachineSetup());
@@ -43,6 +45,7 @@ export function LaundryMonitorComponent() {
   const [isLoading, setIsLoading] = useState(true);
   const [showWelcomeScreen, setShowWelcomeScreen] = useState(false);
   const [preferredMachines, setPreferredMachines] = useState<string[]>([]);
+  const [showSplashScreen, setShowSplashScreen] = useState(true)
 
   const { socket, isConnected } = useSocket(
     "https://mint-mountain-accordion.glitch.me/"
@@ -281,7 +284,16 @@ export function LaundryMonitorComponent() {
 
   return (
     <div className={`min-h-screen flex flex-col ${isDarkMode ? "dark" : ""}`}>
-      {" "}
+{showSplashScreen ? (
+      <SplashScreen
+      onFinished={() => setShowSplashScreen(false)}
+      duration={4000}
+      logoSize={160}
+      title="DLLM Laundry Monitor"
+      subtitle="Smart IoT-based Laundry Management"
+    />
+    ) : (
+      <>
       <div className="container mx-auto px-4 py-8 flex-grow">
         <header className="flex flex-col lg:flex-row justify-between items-center mb-8 space-y-4 lg:space-y-0">
           <div className="flex flex-col sm:flex-row items-center sm:space-x-4">
@@ -440,6 +452,8 @@ export function LaundryMonitorComponent() {
           DLLM Laundry - Smart IoT-based Laundry Management
         </p>
       </footer>
+      </>
+  )}
     </div>
   );
 }
