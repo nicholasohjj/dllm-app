@@ -2,15 +2,60 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <link rel="manifest" href="/manifest.json">
+    <!-- Favicon for multiple devices -->
+    <link rel="icon" type="image/x-icon" href="/icons/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/icons/favicon-32x32.png">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    
+    <!-- Web Manifest for PWA -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Theme color for browsers -->
     <meta name="theme-color" content="#000000">
 
+    <!-- Viewport settings for responsive design -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="DLLM Laundry Monitor is a smart IoT-based laundry management system offering real-time machine updates, estimated wait times, and more to streamline your laundry experience.">
+    <meta name="keywords" content="laundry, IoT, laundry management, smart laundry, DLLM, laundry monitor">
+    <meta name="author" content="DLLM Team">
+    
+    <!-- Social Media Meta Tags (Open Graph for Facebook, Twitter) -->
+    <meta property="og:title" content="DLLM Laundry Monitor">
+    <meta property="og:description" content="Monitor your laundry room with real-time machine status and personalized features.">
+    <!-- Recommended image size for link previews is 1200x630 -->
+    <meta property="og:image" content="https://dllmnus.vercel.app/android-chrome-512x512.png">
+    <meta property="og:url" content="https://dllmnus.vercel.app">
+    <meta property="og:type" content="website">
+    
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Preload important resources to improve performance -->
+    <link rel="preload" href="/src/main.tsx" as="script">
+    
+    <!-- Title of the app -->
     <title>DLLM Laundry Monitor</title>
   </head>
+  
   <body>
-    <div id="root"></div>
+    <!-- Root div where the React app will be rendered -->
+    <div id="root" aria-label="DLLM Laundry Monitor"></div>
+
+    <!-- Importing the main TypeScript file for React app -->
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Register Service Worker for offline functionality -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+        .then(function(registration) {
+          console.log('Service Worker registered with scope:', registration.scope);
+        }).catch(function(error) {
+          console.log('Service Worker registration failed:', error);
+        });
+      }
+    </script>
   </body>
 </html>
