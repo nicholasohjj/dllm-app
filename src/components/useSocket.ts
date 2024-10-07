@@ -14,16 +14,20 @@ export function useSocket(url: string): UseSocketReturn {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    // Create the socket instance
+    // Create the socket instance with only WebSocket to reduce edge requests
     const socketIo: Socket = io(url, {
       withCredentials: true,
-      transports: ['websocket', 'polling'],
-      reconnectionAttempts: 5,  // Limit reconnection attempts
-      reconnectionDelay: 1000,  // Delay before reconnecting
+      transports: ['websocket'], // Only WebSocket to minimize HTTP polling
+      reconnectionAttempts: 3,   // Reduce reconnection attempts
+      reconnectionDelay: 3000,   // Increase delay to reduce frequent retries
     });
+
+    // Throttle state updates to reduce redundant renders
+    const reconnectTimer: NodeJS.Timeout | null = null;
 
     // Set up event listeners
     socketIo.on('connect', () => {
+      if (reconnectTimer) clearTimeout(reconnectTimer); // Prevent throttled reconnection
       setIsConnected(true);
       setError(null);  // Reset error when connected
     });
