@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { MapPin, RefreshCw, Search, Sun, Moon } from "lucide-react";
+import { MapPin, RefreshCw, Search, Sun, Moon, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -26,7 +26,7 @@ import { Machine } from "./types";
 import { useSocket } from "./useSocket"
 import { Skeleton } from "@/components/ui/skeleton"
 import { WelcomeScreen } from "./WelcomeScreen"
-
+import { Link } from "react-router-dom";
 export function LaundryMonitorComponent() {
   const [machines, setMachines] = useState<Machine[]>(useMachineSetup());
   const [isFloorplanOpen, setIsFloorplanOpen] = useState(false);
@@ -245,6 +245,11 @@ export function LaundryMonitorComponent() {
             >
               <MapPin className="mr-2 h-4 w-4" /> Floorplan
             </Button>
+            <Link to="/about" >
+              <Button variant="outline" className="w-full sm:w-auto">
+                <Info className="mr-2 h-4 w-4" /> About Us
+              </Button>
+            </Link>
             <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
               {" "}
               <RefreshCw className="mr-2 h-4 w-4" />
