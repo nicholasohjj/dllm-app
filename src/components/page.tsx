@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 
 export default function CatchAllPage() {
-  const { slug } = useParams<{ slug: string[] }>(); // Retrieve slug from params
+  const { slug } = useParams<{ slug: string }>(); // Retrieve slug from params
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Retrieve dark mode preference from localStorage when the component is mounted
