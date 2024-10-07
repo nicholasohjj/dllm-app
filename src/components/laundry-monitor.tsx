@@ -23,10 +23,12 @@ import { LaundryFloorplan } from "./LaundryFloorplan";
 import { useMachineSetup } from "./MachineSetup";
 import { MachineCard } from "./MachineCard"; // Import the new MachineCard component
 import { Machine } from "./types";
-import { useSocket } from "./useSocket"
-import { Skeleton } from "@/components/ui/skeleton"
-import { WelcomeScreen } from "./WelcomeScreen"
+import { useSocket } from "./useSocket";
+import { Skeleton } from "@/components/ui/skeleton";
+import { WelcomeScreen } from "./WelcomeScreen";
 import { Link } from "react-router-dom";
+import logo from "../assets/logo.svg";
+
 export function LaundryMonitorComponent() {
   const [machines, setMachines] = useState<Machine[]>(useMachineSetup());
   const [isFloorplanOpen, setIsFloorplanOpen] = useState(false);
@@ -38,11 +40,13 @@ export function LaundryMonitorComponent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("id");
-  const [isLoading, setIsLoading] = useState(true)
-  const [showWelcomeScreen, setShowWelcomeScreen] = useState(false)
-  const [preferredMachines, setPreferredMachines] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(true);
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(false);
+  const [preferredMachines, setPreferredMachines] = useState<string[]>([]);
 
-  const { socket, isConnected } = useSocket("https://mint-mountain-accordion.glitch.me/")
+  const { socket, isConnected } = useSocket(
+    "https://mint-mountain-accordion.glitch.me/"
+  );
 
   useEffect(() => {
     // Check system preference for dark mode
@@ -67,50 +71,50 @@ export function LaundryMonitorComponent() {
   }, []);
 
   useEffect(() => {
-    const welcomeScreenSeen = localStorage.getItem('welcomeScreenSeen')
+    const welcomeScreenSeen = localStorage.getItem("welcomeScreenSeen");
     if (!welcomeScreenSeen) {
-      setShowWelcomeScreen(true)
+      setShowWelcomeScreen(true);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    if (isConnected && socket) {  // Ensure socket is not null
-      setIsLoading(false)
-      
+    if (isConnected && socket) {
+      // Ensure socket is not null
+      setIsLoading(false);
+
       // Add the listener for machineData
       socket.on("machineData", (updatedMachines: Machine[]) => {
-        setLastUpdated(new Date())
-        setMachines(updatedMachines)
-      })
-      
+        setLastUpdated(new Date());
+        setMachines(updatedMachines);
+      });
+
       // Cleanup the listener when the component is unmounted or socket changes
       return () => {
-        socket.off("machineData")  // Clean up the listener to avoid memory leaks
-      }
+        socket.off("machineData"); // Clean up the listener to avoid memory leaks
+      };
     }
-  }, [isConnected, socket])
-  
+  }, [isConnected, socket]);
 
   useEffect(() => {
     document.body.classList.toggle("dark", isDarkMode);
   }, [isDarkMode]);
 
   useEffect(() => {
-    const savedPreferences = localStorage.getItem('preferredMachines')
+    const savedPreferences = localStorage.getItem("preferredMachines");
     if (savedPreferences) {
-      setPreferredMachines(JSON.parse(savedPreferences))
+      setPreferredMachines(JSON.parse(savedPreferences));
     }
-  }, [])
+  }, []);
 
   const togglePreferredMachine = (machineId: string) => {
-    setPreferredMachines(prev => {
+    setPreferredMachines((prev) => {
       const newPreferences = prev.includes(machineId)
-        ? prev.filter(id => id !== machineId)
-        : [...prev, machineId]
-      localStorage.setItem('preferredMachines', JSON.stringify(newPreferences))
-      return newPreferences
-    })
-  }
+        ? prev.filter((id) => id !== machineId)
+        : [...prev, machineId];
+      localStorage.setItem("preferredMachines", JSON.stringify(newPreferences));
+      return newPreferences;
+    });
+  };
 
   useEffect(() => {
     // Register the service worker for push notifications
@@ -126,24 +130,30 @@ export function LaundryMonitorComponent() {
     }
   }, []);
 
-  const getAvailableMachinesCount = useCallback((type: "washer" | "dryer") => {
-    return machines.filter(
-      (machine) => machine.type === type && machine.status === "available"
-    ).length
-  }, [machines])
+  const getAvailableMachinesCount = useCallback(
+    (type: "washer" | "dryer") => {
+      return machines.filter(
+        (machine) => machine.type === type && machine.status === "available"
+      ).length;
+    },
+    [machines]
+  );
 
-  const getEstimatedWaitTime = useCallback((type: "washer" | "dryer") => {
-    const inUseMachines = machines.filter(
-      (machine) => machine.type === type && machine.status === "in-use"
-    )
-    if (inUseMachines.length === 0) return 0
-    const avgTimeRemaining =
-      inUseMachines.reduce(
-        (sum, machine) => sum + (machine.timeRemaining || 0),
-        0
-      ) / inUseMachines.length
-    return Math.ceil(avgTimeRemaining)
-  }, [machines])
+  const getEstimatedWaitTime = useCallback(
+    (type: "washer" | "dryer") => {
+      const inUseMachines = machines.filter(
+        (machine) => machine.type === type && machine.status === "in-use"
+      );
+      if (inUseMachines.length === 0) return 0;
+      const avgTimeRemaining =
+        inUseMachines.reduce(
+          (sum, machine) => sum + (machine.timeRemaining || 0),
+          0
+        ) / inUseMachines.length;
+      return Math.ceil(avgTimeRemaining);
+    },
+    [machines]
+  );
 
   const getStatusColor = useCallback((status: Machine["status"]) => {
     const statusColors = {
@@ -194,8 +204,14 @@ export function LaundryMonitorComponent() {
     [filterStatus, searchQuery, sortBy]
   );
 
-  const washers = useMemo(() => sortMachines(machines, "washer"), [machines, sortMachines])
-  const dryers = useMemo(() => sortMachines(machines, "dryer"), [machines, sortMachines])
+  const washers = useMemo(
+    () => sortMachines(machines, "washer"),
+    [machines, sortMachines]
+  );
+  const dryers = useMemo(
+    () => sortMachines(machines, "dryer"),
+    [machines, sortMachines]
+  );
 
   const formatLastUpdated = (date: Date | null) => {
     if (!date) return "Never";
@@ -203,7 +219,10 @@ export function LaundryMonitorComponent() {
   };
 
   const renderMachineSection = (type: "Washers" | "Dryers") => (
-    <section key={type} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <section
+      key={type}
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+    >
       <h2 className="text-2xl font-semibold mb-4">{type}</h2>
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -228,16 +247,25 @@ export function LaundryMonitorComponent() {
         </div>
       )}
     </section>
-  )
+  );
 
   return (
     <div className={`min-h-screen flex flex-col ${isDarkMode ? "dark" : ""}`}>
       {" "}
       <div className="container mx-auto px-4 py-8 flex-grow">
-        <header className="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
-          <h1 className="text-3xl font-bold text-center sm:text-left">
-            DLLM Laundry Monitor
-          </h1>
+        <header className="flex flex-col lg:flex-row justify-between items-center mb-8 space-y-4 lg:space-y-0">
+          <div className="flex flex-col sm:flex-row items-center sm:space-x-4">
+            {" "}
+            <img
+              src={logo}
+              alt="DLLM Laundry Monitor"
+              className="h-16 w-16 sm:h-20 sm:w-20 mb-2 sm:mb-0"
+            />
+            <h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">
+              
+              Laundry Monitor
+            </h1>
+          </div>
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
             <Button
               onClick={() => setIsFloorplanOpen(true)}
@@ -245,7 +273,7 @@ export function LaundryMonitorComponent() {
             >
               <MapPin className="mr-2 h-4 w-4" /> Floorplan
             </Button>
-            <Link to="/about" >
+            <Link to="/about">
               <Button variant="outline" className="w-full sm:w-auto">
                 <Info className="mr-2 h-4 w-4" /> About Us
               </Button>
@@ -332,8 +360,8 @@ export function LaundryMonitorComponent() {
             <h2 className="text-2xl font-semibold mb-4">Preferred Machines</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {machines
-                .filter(machine => preferredMachines.includes(machine.id))
-                .map(machine => (
+                .filter((machine) => preferredMachines.includes(machine.id))
+                .map((machine) => (
                   <MachineCard
                     key={machine.id}
                     machine={machine}
@@ -376,7 +404,6 @@ export function LaundryMonitorComponent() {
           isOpen={showWelcomeScreen}
           onClose={() => setShowWelcomeScreen(false)}
         />
-        
       </div>
       <footer className="p-4 bg-white dark:bg-gray-800 shadow-sm mt-auto">
         <p className="text-center text-sm text-muted-foreground">
