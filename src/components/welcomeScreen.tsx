@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { WelcomeScreenProps } from './types'
 
-export function WelcomeScreen({ isOpen, onClose }: WelcomeScreenProps) {
+const WelcomeScreen = ({ isOpen, onClose }: WelcomeScreenProps) => {
   const [dontShowAgain, setDontShowAgain] = useState(false)
 
   const handleClose = () => {
@@ -52,3 +52,5 @@ export function WelcomeScreen({ isOpen, onClose }: WelcomeScreenProps) {
     </Dialog>
   )
 }
+
+export default WelcomeScreen
