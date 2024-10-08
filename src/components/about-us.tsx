@@ -39,7 +39,7 @@ export default function AboutUs() {
             <li>Toggle dark mode for comfortable viewing at night</li>
           </ol>
           <p>
-            For any issues or feedback, please contact our support team at support@dllmlaundry.com
+            For any issues or feedback, please contact our support team at dllmnus@googlegroups.com
           </p>
         </CardContent>
       </Card>
