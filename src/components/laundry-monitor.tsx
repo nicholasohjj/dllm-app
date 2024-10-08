@@ -26,7 +26,7 @@ import { MachineCard } from "./MachineCard"; // Import the new MachineCard compo
 import { Machine } from "./types";
 import { useSocket } from "./useSocket";
 import { Skeleton } from "@/components/ui/skeleton";
-import WelcomeScreen from "./WelcomeScreen";
+import WelcomeScreen from "./welcome-screen";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.svg";
 
