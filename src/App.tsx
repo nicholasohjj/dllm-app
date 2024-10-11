@@ -5,7 +5,7 @@ import AboutUs from "./components/about-us";
 import CatchAllPage from "./components/page";
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-
+import { DarkModeProvider } from "./components/darkmodecontext";
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -21,6 +21,7 @@ const messaging = getMessaging(app);
 function App() {
   return (
     <>
+    <DarkModeProvider>
       <Toaster />
       <Routes>
         {/* Define route paths and corresponding components */}
@@ -28,6 +29,7 @@ function App() {
         <Route path="/about" element={<AboutUs />} />
         <Route path="*" element={<CatchAllPage/>} />
       </Routes>
+    </DarkModeProvider>
     </>
   );
 }

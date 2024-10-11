@@ -33,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import logo from "../assets/logo.svg";
 import { messaging } from "../firebase";
 import { getToken, onMessage } from "firebase/messaging"; // Import necessary functions
+import { useDarkMode } from "./DarkModeContext";
 
 export function LaundryMonitorComponent() {
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -43,7 +44,7 @@ export function LaundryMonitorComponent() {
   const [selectedMachineId, setSelectedMachineId] = useState<string | null>(
     null
   );
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode, toggleDarkMode } = useDarkMode();  // Use the hook to access dark mode state
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("id");
@@ -82,11 +83,11 @@ export function LaundryMonitorComponent() {
     );
 
     // Set the initial dark mode state based on system preference
-    setIsDarkMode(darkModeMediaQuery.matches);
+    toggleDarkMode(darkModeMediaQuery.matches);
 
     // Listen for changes in the system preference and update accordingly
     const handleDarkModeChange = (event: MediaQueryListEvent) => {
-      setIsDarkMode(event.matches);
+      toggleDarkMode(event.matches);
     };
 
     darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
@@ -137,17 +138,17 @@ export function LaundryMonitorComponent() {
     // Check if the user has a saved preference
     const savedDarkMode = localStorage.getItem("darkMode");
     if (savedDarkMode) {
-      setIsDarkMode(savedDarkMode === "true");
+      toggleDarkMode(savedDarkMode === "true");
     } else {
       // If no preference is saved, use system preference
       const darkModeMediaQuery = window.matchMedia(
         "(prefers-color-scheme: dark)"
       );
-      setIsDarkMode(darkModeMediaQuery.matches);
+      toggleDarkMode(darkModeMediaQuery.matches);
 
       // Listen for system preference changes
       const handleDarkModeChange = (event: MediaQueryListEvent) => {
-        setIsDarkMode(event.matches);
+        toggleDarkMode(event.matches);
       };
       darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
 
@@ -430,7 +431,7 @@ export function LaundryMonitorComponent() {
   );
 
   const handleDarkModeToggle = (checked: boolean) => {
-    setIsDarkMode(checked);
+    toggleDarkMode(checked);
     localStorage.setItem("darkMode", checked.toString());
   };
 
