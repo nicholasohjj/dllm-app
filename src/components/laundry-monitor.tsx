@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { MapPin, RefreshCw, Search, Sun, Moon, Info } from "lucide-react";
+import { MapPin, RefreshCw, Search, Sun, Moon, Info, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -28,15 +28,23 @@ import { useSocket } from "./useSocket";
 import { Skeleton } from "@/components/ui/skeleton";
 import WelcomeScreen from "./welcome-screen";
 import { Link } from "react-router-dom";
+import { Toast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 import logo from "../assets/logo.svg";
+import { messaging } from '../firebase';
+import { getToken, onMessage } from 'firebase/messaging'; // Import necessary functions
 
 export function LaundryMonitorComponent() {
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const { toast } = useToast();
   const [machines, setMachines] = useState<Machine[]>(useMachineSetup());
   const [isFloorplanOpen, setIsFloorplanOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [selectedMachineId, setSelectedMachineId] = useState<string | null>(
     null
   );
+
+  
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -48,6 +56,16 @@ export function LaundryMonitorComponent() {
   const { socket, isConnected } = useSocket(
     "https://mint-mountain-accordion.glitch.me/"
   );
+
+  useEffect(() => {
+    if ("Notification" in window && "PushManager" in window) {
+      navigator.serviceWorker.ready.then((registration) => {
+        registration.pushManager.getSubscription().then((subscription) => {
+          setIsSubscribed(!!subscription);
+        });
+      });
+    }
+  }, []);
 
   useEffect(() => {
     // Check system preference for dark mode
@@ -118,19 +136,132 @@ export function LaundryMonitorComponent() {
         "(prefers-color-scheme: dark)"
       );
       setIsDarkMode(darkModeMediaQuery.matches);
-  
+
       // Listen for system preference changes
       const handleDarkModeChange = (event: MediaQueryListEvent) => {
         setIsDarkMode(event.matches);
       };
       darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
-  
+
       return () => {
         darkModeMediaQuery.removeEventListener("change", handleDarkModeChange);
       };
     }
   }, []);
-  
+
+  const subscribeToPushNotifications = useCallback(async () => {
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        toast({
+          title: "Permission Denied",
+          description: "You need to enable notifications to subscribe.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!messaging) {
+        toast({
+          title: "Error",
+          description: "Push notifications are not supported in your browser.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const token = await getToken(messaging, {
+        vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY as string,
+      });
+
+      console.log("FCM Token:", token);
+      await sendSubscriptionToServer(token); // Implement this to send the token to your backend
+
+      setIsSubscribed(true);
+      toast({
+        title: "Subscribed",
+        description: "You will receive push notifications.",
+      });
+
+    } catch (error) {
+      console.error("Subscription error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to subscribe to push notifications.",
+        variant: "destructive",
+      });
+    }
+  }, []);
+
+  const sendSubscriptionToServer = async (token: string) => {
+    try {
+      await fetch("/api/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token }),
+      });
+    } catch (error) {
+      console.error("Failed to send subscription to the server:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (messaging) {
+      onMessage(messaging, (payload) => {
+        console.log("Message received: ", payload);
+        toast({
+          title: "Notification",
+          description: payload.notification?.body || "New notification received",
+        });
+      });
+    }
+  }, []);
+
+
+
+  // Push Notification unsubscription logic
+  const unsubscribeFromPushNotifications = useCallback(async () => {
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        await subscription.unsubscribe();
+
+        // Notify the server to remove the subscription
+        await sendUnsubscriptionToServer(subscription);
+
+        setIsSubscribed(false);
+        toast({
+          title: "Unsubscribed",
+          description: "You have unsubscribed from push notifications.",
+        });
+      }
+    } catch (error) {
+      console.error("Unsubscription error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to unsubscribe from push notifications.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
+  const sendUnsubscriptionToServer = async (subscription) => {
+    try {
+      await fetch("/api/unsubscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(subscription),
+      });
+    } catch (error) {
+      console.error("Failed to send unsubscription to the server:", error);
+    }
+  };
+
 
   const togglePreferredMachine = (machineId: string) => {
     setPreferredMachines((prev) => {
@@ -148,6 +279,7 @@ export function LaundryMonitorComponent() {
       navigator.serviceWorker
         .register("/service-worker.js")
         .then(function (registration) {
+          registration.update(); // Ensures the latest SW is used
           console.log("Service Worker registered", registration);
         })
         .catch(function (error) {
@@ -292,7 +424,6 @@ export function LaundryMonitorComponent() {
               className="h-16 w-16 sm:h-20 sm:w-20 mb-2 sm:mb-0"
             />
             <h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">
-              
               Laundry Monitor
             </h1>
           </div>
@@ -325,11 +456,13 @@ export function LaundryMonitorComponent() {
                 <Sun className="h-4 w-4 text-yellow-400" />
               )}
             </div>
-            {/* 
-<Button variant="outline" size="icon" onClick={handleNotificationToggle}>
-  <Bell className="h-4 w-4" />
-</Button>
-*/}
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={isSubscribed ? unsubscribeFromPushNotifications : subscribeToPushNotifications}
+            >
+              <Bell className={`h-4 w-4 ${isSubscribed ? 'text-green-500' : ''}`} />
+            </Button>
           </div>
         </header>
 
