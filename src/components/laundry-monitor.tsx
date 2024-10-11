@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { MapPin, RefreshCw, Search, Sun, Moon, Info, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -31,8 +31,8 @@ import { Link } from "react-router-dom";
 import { Toast } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
 import logo from "../assets/logo.svg";
-import { messaging } from '../firebase';
-import { getToken, onMessage } from 'firebase/messaging'; // Import necessary functions
+import { messaging } from "../firebase";
+import { getToken, onMessage } from "firebase/messaging"; // Import necessary functions
 
 export function LaundryMonitorComponent() {
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -43,8 +43,6 @@ export function LaundryMonitorComponent() {
   const [selectedMachineId, setSelectedMachineId] = useState<string | null>(
     null
   );
-
-  
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -52,6 +50,16 @@ export function LaundryMonitorComponent() {
   const [isLoading, setIsLoading] = useState(true);
   const [showWelcomeScreen, setShowWelcomeScreen] = useState(false);
   const [preferredMachines, setPreferredMachines] = useState<string[]>([]);
+
+  const headerVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
+
+  const machineCardVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+  };
 
   const { socket, isConnected } = useSocket(
     "https://mint-mountain-accordion.glitch.me/"
@@ -152,7 +160,7 @@ export function LaundryMonitorComponent() {
   const subscribeToPushNotifications = useCallback(async () => {
     try {
       const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
+      if (permission !== "granted") {
         toast({
           title: "Permission Denied",
           description: "You need to enable notifications to subscribe.",
@@ -182,7 +190,6 @@ export function LaundryMonitorComponent() {
         title: "Subscribed",
         description: "You will receive push notifications.",
       });
-
     } catch (error) {
       console.error("Subscription error:", error);
       toast({
@@ -213,13 +220,12 @@ export function LaundryMonitorComponent() {
         console.log("Message received: ", payload);
         toast({
           title: "Notification",
-          description: payload.notification?.body || "New notification received",
+          description:
+            payload.notification?.body || "New notification received",
         });
       });
     }
   }, []);
-
-
 
   // Push Notification unsubscription logic
   const unsubscribeFromPushNotifications = useCallback(async () => {
@@ -261,7 +267,6 @@ export function LaundryMonitorComponent() {
       console.error("Failed to send unsubscription to the server:", error);
     }
   };
-
 
   const togglePreferredMachine = (machineId: string) => {
     setPreferredMachines((prev) => {
@@ -377,8 +382,14 @@ export function LaundryMonitorComponent() {
   };
 
   const renderMachineSection = (type: "Washers" | "Dryers") => (
-    <section
+    <motion.section
       key={type}
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+      }}
       className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
     >
       <h2 className="text-2xl font-semibold mb-4">{type}</h2>
@@ -390,21 +401,32 @@ export function LaundryMonitorComponent() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {(type === "Washers" ? washers : dryers).map((machine) => (
-            <MachineCard
-              key={machine.id}
-              machine={machine}
-              getStatusColor={getStatusColor}
-              isOpen={selectedMachineId === machine.id}
-              onClose={() => setSelectedMachineId(null)}
-              onClick={() => setSelectedMachineId(machine.id)}
-              isPreferred={preferredMachines.includes(machine.id)}
-              onTogglePreferred={() => togglePreferredMachine(machine.id)}
-            />
-          ))}
+          <AnimatePresence>
+            {(type === "Washers" ? washers : dryers).map((machine) => (
+              <motion.div
+                key={machine.id}
+                variants={machineCardVariants}
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                layout
+              >
+                <MachineCard
+                  key={machine.id}
+                  machine={machine}
+                  getStatusColor={getStatusColor}
+                  isOpen={selectedMachineId === machine.id}
+                  onClose={() => setSelectedMachineId(null)}
+                  onClick={() => setSelectedMachineId(machine.id)}
+                  isPreferred={preferredMachines.includes(machine.id)}
+                  onTogglePreferred={() => togglePreferredMachine(machine.id)}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
-    </section>
+    </motion.section>
   );
 
   const handleDarkModeToggle = (checked: boolean) => {
@@ -413,10 +435,20 @@ export function LaundryMonitorComponent() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${isDarkMode ? "dark" : ""}`}>
+    <motion.div
+      className={`min-h-screen flex flex-col ${isDarkMode ? "dark" : ""}`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {" "}
       <div className="container mx-auto px-4 py-8 flex-grow">
-        <header className="flex flex-col lg:flex-row justify-between items-center mb-8 space-y-4 lg:space-y-0">
-          <div className="flex flex-col sm:flex-row items-center sm:space-x-4">
+      <motion.header
+          className="flex flex-col lg:flex-row justify-between items-center mb-8 space-y-4 lg:space-y-0"
+          variants={headerVariants}
+          initial="hidden"
+          animate="visible"
+        >          <div className="flex flex-col sm:flex-row items-center sm:space-x-4">
             {" "}
             <img
               src={logo}
@@ -456,15 +488,21 @@ export function LaundryMonitorComponent() {
                 <Sun className="h-4 w-4 text-yellow-400" />
               )}
             </div>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={isSubscribed ? unsubscribeFromPushNotifications : subscribeToPushNotifications}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={
+                isSubscribed
+                  ? unsubscribeFromPushNotifications
+                  : subscribeToPushNotifications
+              }
             >
-              <Bell className={`h-4 w-4 ${isSubscribed ? 'text-green-500' : ''}`} />
+              <Bell
+                className={`h-4 w-4 ${isSubscribed ? "text-green-500" : ""}`}
+              />
             </Button>
           </div>
-        </header>
+        </motion.header>
 
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
           <div className="flex space-x-2">
@@ -540,10 +578,16 @@ export function LaundryMonitorComponent() {
           </section>
         )}
 
-        <div className="space-y-8">
+        <motion.div
+          className="space-y-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          {" "}
           {renderMachineSection("Washers")}
           {renderMachineSection("Dryers")}
-        </div>
+        </motion.div>
 
         <Dialog open={isFloorplanOpen} onOpenChange={setIsFloorplanOpen}>
           <DialogContent className="w-full max-w-3xl h-[80vh] overflow-auto">
@@ -573,6 +617,6 @@ export function LaundryMonitorComponent() {
           DLLM Laundry - Smart IoT-based Laundry Management
         </p>
       </footer>
-    </div>
+    </motion.div>
   );
 }
