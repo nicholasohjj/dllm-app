@@ -83,11 +83,11 @@ export function LaundryMonitorComponent() {
     );
 
     // Set the initial dark mode state based on system preference
-    toggleDarkMode(darkModeMediaQuery.matches);
+    toggleDarkMode();
 
     // Listen for changes in the system preference and update accordingly
-    const handleDarkModeChange = (event: MediaQueryListEvent) => {
-      toggleDarkMode(event.matches);
+    const handleDarkModeChange = () => {
+      toggleDarkMode();
     };
 
     darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
@@ -138,17 +138,17 @@ export function LaundryMonitorComponent() {
     // Check if the user has a saved preference
     const savedDarkMode = localStorage.getItem("darkMode");
     if (savedDarkMode) {
-      toggleDarkMode(savedDarkMode === "true");
+      toggleDarkMode();
     } else {
       // If no preference is saved, use system preference
       const darkModeMediaQuery = window.matchMedia(
         "(prefers-color-scheme: dark)"
       );
-      toggleDarkMode(darkModeMediaQuery.matches);
+      toggleDarkMode();
 
       // Listen for system preference changes
-      const handleDarkModeChange = (event: MediaQueryListEvent) => {
-        toggleDarkMode(event.matches);
+      const handleDarkModeChange = () => {
+        toggleDarkMode();
       };
       darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
 
@@ -255,7 +255,8 @@ export function LaundryMonitorComponent() {
     }
   }, [toast]);
 
-  const sendUnsubscriptionToServer = async (subscription) => {
+  const sendUnsubscriptionToServer = async (subscription: PushSubscription | null) => {
+    if (!subscription) return;  // Handle null case
     try {
       await fetch("/api/unsubscribe", {
         method: "POST",
@@ -268,6 +269,7 @@ export function LaundryMonitorComponent() {
       console.error("Failed to send unsubscription to the server:", error);
     }
   };
+  
 
   const togglePreferredMachine = (machineId: string) => {
     setPreferredMachines((prev) => {
@@ -431,7 +433,7 @@ export function LaundryMonitorComponent() {
   );
 
   const handleDarkModeToggle = (checked: boolean) => {
-    toggleDarkMode(checked);
+    toggleDarkMode();
     localStorage.setItem("darkMode", checked.toString());
   };
 

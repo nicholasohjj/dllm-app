@@ -5,7 +5,7 @@ import AboutUs from "./components/about-us";
 import CatchAllPage from "./components/page";
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import { DarkModeProvider } from "./components/darkmodecontext";
+import { DarkModeProvider } from "./components/DarkModeContext";
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
