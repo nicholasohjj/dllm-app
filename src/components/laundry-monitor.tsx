@@ -38,10 +38,10 @@ import { useDarkMode } from "./DarkModeContext";
 export function LaundryMonitorComponent() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const { toast } = useToast();
-  const [machines, setMachines] = useState<Machine[]>(useMachineSetup());
+  const [machines, setMachines] = useState<Machine[]>([]);
   const [isFloorplanOpen, setIsFloorplanOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [selectedMachineId, setSelectedMachineId] = useState<string | null>(
+  const [selectedmachineID, setSelectedmachineID] = useState<string | null>(
     null
   );
   const { isDarkMode, toggleDarkMode } = useDarkMode();  // Use the hook to access dark mode state
@@ -62,10 +62,14 @@ export function LaundryMonitorComponent() {
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
   };
 
-  const { socket, isConnected } = useSocket(
-    "https://mint-mountain-accordion.glitch.me/"
-  );
+  const websocketUrl = import.meta.env.VITE_REACT_APP_WEBSOCKET_URL;
 
+  if (!websocketUrl) {
+    throw new Error("WebSocket URL is not defined. Please check your .env file.");
+  }
+  
+  const { socket, isConnected } = useSocket(websocketUrl);
+  
   useEffect(() => {
     if ("Notification" in window && "PushManager" in window) {
       navigator.serviceWorker.ready.then((registration) => {
@@ -111,14 +115,33 @@ export function LaundryMonitorComponent() {
       setIsLoading(false);
 
       // Add the listener for machineData
-      socket.on("machineData", (updatedMachines: Machine[]) => {
-        setLastUpdated(new Date());
-        setMachines(updatedMachines);
-      });
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data)
+
+        if (data.type === "initial_state") {
+          console.log("Received initial state:", data.data);
+          setMachines(data.data);
+          setLastUpdated(new Date());
+        } else {
+          console.log("Received update:", data.data);
+          setMachines((prev) => {
+            const updatedMachines = prev.map((machine) => {
+              if (machine.machineID === data.data.machineID) {
+                console.log("Updating machine:", machine.machineID);
+                return { ...machine, ...data.data };
+              }
+              return machine;
+            });
+            return updatedMachines;
+          });
+          setLastUpdated(new Date());
+        }
+      };
 
       // Cleanup the listener when the component is unmounted or socket changes
+
       return () => {
-        socket.off("machineData"); // Clean up the listener to avoid memory leaks
+        if (socket) socket.close(); // Clean up WebSocket on unmount
       };
     }
   }, [isConnected, socket]);
@@ -271,11 +294,11 @@ export function LaundryMonitorComponent() {
   };
   
 
-  const togglePreferredMachine = (machineId: string) => {
+  const togglePreferredMachine = (machineID: string) => {
     setPreferredMachines((prev) => {
-      const newPreferences = prev.includes(machineId)
-        ? prev.filter((id) => id !== machineId)
-        : [...prev, machineId];
+      const newPreferences = prev.includes(machineID)
+        ? prev.filter((id) => id !== machineID)
+        : [...prev, machineID];
       localStorage.setItem("preferredMachines", JSON.stringify(newPreferences));
       return newPreferences;
     });
@@ -332,8 +355,8 @@ export function LaundryMonitorComponent() {
     return statusColors[status] || "bg-gray-500";
   }, []);
 
-  const handleSelectMachine = (machineId: string) => {
-    setSelectedMachineId(machineId);
+  const handleSelectMachine = (machineID: string) => {
+    setSelectedmachineID(machineID);
   };
 
   const sortMachines = useCallback(
@@ -349,13 +372,13 @@ export function LaundryMonitorComponent() {
           return true;
         })
         .filter((machine) =>
-          machine.id.toLowerCase().includes(searchQuery.toLowerCase())
+          machine.machineID.toLowerCase().includes(searchQuery.toLowerCase())
         )
         .sort((a, b) => {
           if (sortBy === "id") {
             return (
-              parseInt(a.id.replace(/\D/g, ""), 10) -
-              parseInt(b.id.replace(/\D/g, ""), 10)
+              parseInt(a.machineID.replace(/\D/g, ""), 10) -
+              parseInt(b.machineID.replace(/\D/g, ""), 10)
             );
           }
           if (sortBy === "status") {
@@ -407,7 +430,7 @@ export function LaundryMonitorComponent() {
           <AnimatePresence>
             {(type === "Washers" ? washers : dryers).map((machine) => (
               <motion.div
-                key={machine.id}
+                key={machine.machineID}
                 variants={machineCardVariants}
                 initial="hidden"
                 animate="visible"
@@ -415,14 +438,14 @@ export function LaundryMonitorComponent() {
                 layout
               >
                 <MachineCard
-                  key={machine.id}
+                  key={machine.machineID}
                   machine={machine}
                   getStatusColor={getStatusColor}
-                  isOpen={selectedMachineId === machine.id}
-                  onClose={() => setSelectedMachineId(null)}
-                  onClick={() => setSelectedMachineId(machine.id)}
-                  isPreferred={preferredMachines.includes(machine.id)}
-                  onTogglePreferred={() => togglePreferredMachine(machine.id)}
+                  isOpen={selectedmachineID === machine.machineID}
+                  onClose={() => setSelectedmachineID(null)}
+                  onClick={() => setSelectedmachineID(machine.machineID)}
+                  isPreferred={preferredMachines.includes(machine.machineID)}
+                  onTogglePreferred={() => togglePreferredMachine(machine.machineID)}
                 />
               </motion.div>
             ))}
@@ -564,17 +587,17 @@ export function LaundryMonitorComponent() {
             <h2 className="text-2xl font-semibold mb-4">Preferred Machines</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {machines
-                .filter((machine) => preferredMachines.includes(machine.id))
+                .filter((machine) => preferredMachines.includes(machine.machineID))
                 .map((machine) => (
                   <MachineCard
-                    key={machine.id}
+                    key={machine.machineID}
                     machine={machine}
                     getStatusColor={getStatusColor}
-                    isOpen={selectedMachineId === machine.id}
-                    onClose={() => setSelectedMachineId(null)}
-                    onClick={() => setSelectedMachineId(machine.id)}
+                    isOpen={selectedmachineID === machine.machineID}
+                    onClose={() => setSelectedmachineID(null)}
+                    onClick={() => setSelectedmachineID(machine.machineID)}
                     isPreferred={true}
-                    onTogglePreferred={() => togglePreferredMachine(machine.id)}
+                    onTogglePreferred={() => togglePreferredMachine(machine.machineID)}
                   />
                 ))}
             </div>

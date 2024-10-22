@@ -3,12 +3,12 @@ import { Machine } from './types';
 const generateMachines = (): Machine[] => {
   const washers = Array.from({ length: 8 }, (_, i) => {
     const washerNumber = 8 - i;
-    const machineId = `RVREB-W${washerNumber}`; // Full washer ID
+    const machineID = `RVREB-W${washerNumber}`; // Full washer ID
     const shortName = `W${washerNumber}`; // Short washer name
     const isFunctional = washerNumber <= 2; // Only washer 1 and 2 are functional
     const status: Machine['status'] = isFunctional ? (i % 2 === 0 ? "available" : "in-use") : "disabled"; // Only functional washers have available/in-use status
     return {
-      id: machineId,
+      machineID: machineID,
       shortName: shortName,
       type: "washer" as const,
       status,
@@ -19,12 +19,12 @@ const generateMachines = (): Machine[] => {
 
   const dryers = Array.from({ length: 6 }, (_, i) => {
     const dryerNumber = i + 1; // Dryer number starts from 1 and increments
-    const machineId = `RVREB-D${dryerNumber}`; // Full dryer ID
+    const machineID = `RVREB-D${dryerNumber}`; // Full dryer ID
     const shortName = `D${dryerNumber}`; // Short dryer name
     const isFunctional = dryerNumber >= 5; // Only dryer 5 and 6 are functional
     const status: Machine['status'] = isFunctional ? (i % 2 === 0 ? "available" : "in-use") : "disabled"; // Only functional dryers have available/in-use status
     return {
-      id: machineId,
+      machineID: machineID,
       shortName: shortName,
       type: "dryer" as const,
       status,

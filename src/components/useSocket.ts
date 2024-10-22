@@ -1,60 +1,58 @@
 import { useEffect, useState, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
 
 interface UseSocketReturn {
-  socket: Socket | null;
+  socket: WebSocket | null;
   isConnected: boolean;
   error: string | null;
 }
 
 export function useSocket(url: string): UseSocketReturn {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const socketRef = useRef<Socket | null>(null);
+  const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    // Create the socket instance with only WebSocket to reduce edge requests
-    const socketIo: Socket = io(url, {
-      withCredentials: true,
-      transports: ['websocket'], // Only WebSocket to minimize HTTP polling
-      reconnectionAttempts: 3,   // Reduce reconnection attempts
-      reconnectionDelay: 3000,   // Increase delay to reduce frequent retries
-    });
+    // Create the WebSocket instance
+    const ws = new WebSocket(url);
 
-    // Throttle state updates to reduce redundant renders
-    const reconnectTimer: NodeJS.Timeout | null = null;
-
-    // Set up event listeners
-    socketIo.on('connect', () => {
-      if (reconnectTimer) clearTimeout(reconnectTimer); // Prevent throttled reconnection
+    // Handle connection open event
+    ws.onopen = () => {
       setIsConnected(true);
       setError(null);  // Reset error when connected
-    });
+      console.log('Connected to WebSocket');
 
-    socketIo.on('disconnect', () => {
+      // Optionally send a message after connection
+      ws.send(JSON.stringify({ action: 'get_initial_state' })); // Trigger to get the initial state
+    };
+
+    // Handle incoming messages
+    ws.onmessage = (event) => {
+      const data = event.data;
+      console.log('Received:', data); // Handle the incoming message
+    };
+
+    // Handle connection close event
+    ws.onclose = () => {
       setIsConnected(false);
-    });
+      console.log('Disconnected from WebSocket');
+    };
 
-    socketIo.on('connect_error', (err) => {
-      setError(`Connection error: ${err.message}`);
-    });
+    // Handle errors
+    ws.onerror = (err) => {
+      setError('WebSocket error occurred');
+      console.error('WebSocket error:', err);
+    };
 
-    socketIo.on('reconnect_failed', () => {
-      setError('Reconnection failed after maximum attempts.');
-    });
+    // Store the WebSocket reference
+    setSocket(ws);
+    socketRef.current = ws;
 
-    // Store the socket reference
-    setSocket(socketIo);
-    socketRef.current = socketIo;
-
-    // Clean up on unmount
+    // Clean up the WebSocket on unmount
     return () => {
       if (socketRef.current) {
-        socketRef.current.off('connect');
-        socketRef.current.off('disconnect');
-        socketRef.current.off('connect_error');
-        socketRef.current.disconnect();  // Disconnect the socket
+        socketRef.current.close(); // Gracefully close WebSocket connection
+        setIsConnected(false);
       }
     };
   }, [url]);

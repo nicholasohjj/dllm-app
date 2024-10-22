@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type LaundryFloorplanProps = {
   machines: Machine[];
-  onSelectMachine: (machineId: string) => void;
+  onSelectMachine: (machineID: string) => void;
 };
 
 export function LaundryFloorplan({
@@ -121,9 +121,9 @@ export function LaundryFloorplan({
           <AnimatePresence>
             {machines.map((machine) => (
               <motion.g
-                key={machine.id}
+                key={machine.machineID}
                 onClick={() =>
-                  machine.status !== "disabled" && onSelectMachine(machine.id)
+                  machine.status !== "disabled" && onSelectMachine(machine.machineID)
                 }
                 className={
                   machine.status === "disabled"
