@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 
 interface UseSocketReturn {
   socket: WebSocket | null;
@@ -6,26 +6,44 @@ interface UseSocketReturn {
   error: string | null;
 }
 
-export function useSocket(url: string, timeoutDuration = 300000): UseSocketReturn { // timeoutDuration default set to 5 minutes (300000ms)
+export function useSocket(url: string, socketTimeoutDuration = 300000, userInactivityDuration = 600000): UseSocketReturn {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Reference to store the timeout
+  const socketTimeoutRef = useRef<NodeJS.Timeout | null>(null); // For WebSocket inactivity timeout
+  const userInactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null); // For user inactivity timeout
 
-  const resetTimeout = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current); // Clear any existing timeout
+  const resetSocketTimeout = useCallback(() => {
+    if (socketTimeoutRef.current) {
+      clearTimeout(socketTimeoutRef.current);
     }
-    // Set a new timeout to disconnect after the specified duration of inactivity
-    timeoutRef.current = setTimeout(() => {
+    socketTimeoutRef.current = setTimeout(() => {
       if (socketRef.current) {
-        console.log('Disconnecting due to inactivity');
-        socketRef.current.close(); // Disconnect the WebSocket
+        console.log('Disconnecting WebSocket due to inactivity');
+        socketRef.current.close(); // Disconnect WebSocket due to inactivity
         setIsConnected(false);
       }
-    }, timeoutDuration);
-  };
+    }, socketTimeoutDuration);
+  }, [socketTimeoutDuration]);
+
+  const resetUserInactivityTimeout = useCallback(() => {
+    if (userInactivityTimeoutRef.current) {
+      clearTimeout(userInactivityTimeoutRef.current);
+    }
+    userInactivityTimeoutRef.current = setTimeout(() => {
+      if (socketRef.current) {
+        console.log('Disconnecting WebSocket due to user inactivity');
+        socketRef.current.close(); // Disconnect WebSocket due to user inactivity
+        setIsConnected(false);
+      }
+    }, userInactivityDuration);
+  }, [userInactivityDuration]);
+
+  const resetAllTimeouts = useCallback(() => {
+    resetSocketTimeout(); // Reset WebSocket timeout
+    resetUserInactivityTimeout(); // Reset user inactivity timeout
+  }, [resetSocketTimeout, resetUserInactivityTimeout]);
 
 
   useEffect(() => {
@@ -35,17 +53,17 @@ export function useSocket(url: string, timeoutDuration = 300000): UseSocketRetur
     // Handle connection open event
     ws.onopen = () => {
       setIsConnected(true);
-      setError(null);  // Reset error when connected
+      setError(null);
       console.log('Connected to WebSocket');
-
-      // Optionally send a message after connection
       ws.send(JSON.stringify({ action: 'get_initial_state' })); // Trigger to get the initial state
+      resetAllTimeouts(); // Reset both timeouts on open
     };
 
     // Handle incoming messages
     ws.onmessage = (event) => {
       const data = event.data;
-      console.log('Received:', data); // Handle the incoming message
+      console.log('Received:', data);
+      resetSocketTimeout(); // Reset only the WebSocket timeout on message
     };
 
     // Handle connection close event
@@ -67,15 +85,37 @@ export function useSocket(url: string, timeoutDuration = 300000): UseSocketRetur
     // Clean up the WebSocket on unmount
     return () => {
       if (socketRef.current) {
-        socketRef.current.close(); // Gracefully close WebSocket connection
-        setIsConnected(false);
+        socketRef.current.close(); // Close WebSocket
       }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current); // Clear the timeout on unmount
+      if (socketTimeoutRef.current) {
+        clearTimeout(socketTimeoutRef.current); // Clear WebSocket timeout
       }
-      setIsConnected(false);
+      if (userInactivityTimeoutRef.current) {
+        clearTimeout(userInactivityTimeoutRef.current); // Clear user inactivity timeout
+      }
     };
-  }, [url]);
+  }, [url, resetAllTimeouts, resetSocketTimeout]);
+
+  useEffect(() => {
+    const handleUserActivity = () => {
+      resetAllTimeouts(); // Reset timeouts when the user interacts with the page
+    };
+
+    // Add event listeners for user activity (desktop and mobile)
+    window.addEventListener('mousemove', handleUserActivity); // Mouse movement
+    window.addEventListener('keydown', handleUserActivity); // Keyboard input
+    window.addEventListener('touchstart', handleUserActivity); // Touch interaction (for mobile)
+    window.addEventListener('touchend', handleUserActivity); // Touch interaction (for mobile)
+
+    // Cleanup event listeners on unmount
+    return () => {
+      window.removeEventListener('mousemove', handleUserActivity);
+      window.removeEventListener('keydown', handleUserActivity);
+      window.removeEventListener('touchstart', handleUserActivity);
+      window.removeEventListener('touchend', handleUserActivity);
+    };
+  }, [resetAllTimeouts]);
+
 
   return { socket, isConnected, error };
 }
