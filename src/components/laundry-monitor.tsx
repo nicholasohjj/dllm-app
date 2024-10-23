@@ -29,8 +29,6 @@ import WelcomeScreen from "./welcome-screen";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import logo from "../assets/logo.svg";
-import { messaging } from "../firebase";
-import { getToken, onMessage } from "firebase/messaging"; // Import necessary functions
 import { useDarkMode } from "../DarkModeContext";
 import { useMachineSetup } from "./MachineSetup";
 
@@ -192,22 +190,6 @@ export function LaundryMonitorComponent() {
         return;
       }
 
-      if (!messaging) {
-        toast({
-          title: "Error",
-          description: "Push notifications are not supported in your browser.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const token = await getToken(messaging, {
-        vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY as string,
-      });
-
-      console.log("FCM Token:", token);
-      await sendSubscriptionToServer(token); // Implement this to send the token to your backend
-
       setIsSubscribed(true);
       toast({
         title: "Subscribed",
@@ -236,19 +218,6 @@ export function LaundryMonitorComponent() {
       console.error("Failed to send subscription to the server:", error);
     }
   };
-
-  useEffect(() => {
-    if (messaging) {
-      onMessage(messaging, (payload) => {
-        console.log("Message received: ", payload);
-        toast({
-          title: "Notification",
-          description:
-            payload.notification?.body || "New notification received",
-        });
-      });
-    }
-  }, []);
 
   // Push Notification unsubscription logic
   const unsubscribeFromPushNotifications = useCallback(async () => {
