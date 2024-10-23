@@ -48,31 +48,35 @@ export function LaundryMonitorComponent() {
   const [showWelcomeScreen, setShowWelcomeScreen] = useState(false);
   const [preferredMachines, setPreferredMachines] = useState<string[]>([]);
   const lambdaUrl = import.meta.env.VITE_REACT_APP_LAMBDA_URL;  // Access the Lambda URL from Vite environment variables
+  console.log("Lambda URL:", lambdaUrl);  // Log the Lambda URL
 
     // Fetch data from Lambda URL
     const fetchMachineStatus = useCallback(async () => {
       try {
-        const response = await fetch(lambdaUrl, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+          const response = await fetch(lambdaUrl, {
+              method: "GET",
+              headers: {
+                  "Content-Type": "application/json",
+              },
+          });
   
-        if (!response.ok) {
-          throw new Error("Failed to fetch machine data");
-        }
+          if (!response.ok) {
+              const errorText = await response.text(); // Get response as text
+              console.error("Fetch error response:", errorText); // Log error response
+              throw new Error("Failed to fetch machine data");
+          }
   
-        const data = await response.json();
-        console.log("Fetched machine data:", data);
-        setMachines(data.data);  // Assuming the data is in 'data' field
-        setLastUpdated(new Date());
+          const data = await response.json();
+          console.log("Fetched machine data:", data);
+          setMachines(data.data);
+          setLastUpdated(new Date());
       } catch (error) {
-        console.error("Error fetching machine status:", error);
+          console.error("Error fetching machine status:", error);
       } finally {
-        setIsLoading(false);
+          setIsLoading(false);
       }
-    }, [lambdaUrl]);
+  }, [lambdaUrl]);
+  
 
     
       // Fetch machine data when the component mounts and every 5 minutes thereafter
