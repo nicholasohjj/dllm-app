@@ -21,24 +21,23 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { LaundryFloorplan } from "./LaundryFloorplan";
-import { useMachineSetup } from "./MachineSetup";
 import { MachineCard } from "./MachineCard"; // Import the new MachineCard component
 import { Machine } from "./types";
 import { useSocket } from "./useSocket";
 import { Skeleton } from "@/components/ui/skeleton";
 import WelcomeScreen from "./welcome-screen";
 import { Link } from "react-router-dom";
-import { Toast } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
 import logo from "../assets/logo.svg";
 import { messaging } from "../firebase";
 import { getToken, onMessage } from "firebase/messaging"; // Import necessary functions
 import { useDarkMode } from "./DarkModeContext";
+import { useMachineSetup } from "./MachineSetup";
 
 export function LaundryMonitorComponent() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const { toast } = useToast();
-  const [machines, setMachines] = useState<Machine[]>([]);
+  const [machines, setMachines] = useState<Machine[]>(useMachineSetup());
   const [isFloorplanOpen, setIsFloorplanOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [selectedmachineID, setSelectedmachineID] = useState<string | null>(
