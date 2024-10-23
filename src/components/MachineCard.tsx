@@ -50,29 +50,30 @@ export function MachineCard({
 }: MachineCardProps) {
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
-  const [remainingTime, setRemainingTime] = useState(
-    machine.timeRemaining || 0
-  )
 
   useEffect(() => {
     if (machine.status === "in-use" || machine.status === "finishing-soon") {
-      const totalTime = 34 * 60 // 34 minutes in seconds
-      const remaining = machine.timeRemaining || 0
-      setRemainingTime(remaining)
-
-      const initialPercentage = ((totalTime - remaining) / totalTime) * 100
-      setProgress(initialPercentage)
+      // Simulate progress based on status
+      setProgress(machine.status === "finishing-soon" ? 75 : 50)
     } else if (machine.status === "complete") {
       setProgress(100)
     }
-  }, [machine.status, machine.timeRemaining])
+  }, [machine.status])
 
   const getTimeEstimate = useCallback(() => {
-    if (remainingTime > 20 * 60) return "More than 20 minutes remaining"
-    if (remainingTime > 10 * 60) return "Less than 20 minutes remaining"
-    if (remainingTime > 5 * 60) return "Finishing soon..."
-    return "Almost done!"
-  }, [remainingTime])
+    switch (machine.status) {
+      case "in-use":
+        return "In use"
+      case "finishing-soon":
+        return "Finishing soon..."
+      case "complete":
+        return "Complete"
+      case "available":
+        return "Available"
+      default:
+        return "Status unknown"
+    }
+  }, [machine.status])
 
   const getStatusIcon = useMemo(() => {
     switch (machine.status) {
@@ -87,12 +88,6 @@ export function MachineCard({
         return <AlertCircle className="h-5 w-5 text-gray-500" aria-hidden="true" />
     }
   }, [machine.status])
-
-  const formatTime = useCallback((seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
-  }, [])
 
   const cardContent = useMemo(() => {
     if (error) {
@@ -132,7 +127,6 @@ export function MachineCard({
               <p className="text-sm text-muted-foreground">
                 {getTimeEstimate()}
               </p>
-              <p className="text-sm font-medium">{formatTime(remainingTime)}</p>
             </motion.div>
           </motion.div>
         )
@@ -170,14 +164,7 @@ export function MachineCard({
           </motion.p>
         )
     }
-  }, [
-    error,
-    machine.status,
-    progress,
-    getTimeEstimate,
-    remainingTime,
-    formatTime,
-  ])
+  }, [error, machine.status, progress, getTimeEstimate])
 
   return (
     <>
@@ -285,9 +272,6 @@ export function MachineCard({
                           transition={{ delay: 0.2 }}
                           className="flex justify-between items-center"
                         >
-                          <span className="text-2xl font-bold">
-                            {formatTime(remainingTime)}
-                          </span>
                           <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
@@ -349,8 +333,8 @@ export function MachineCard({
                 <DialogClose asChild>
                   <Button className="w-full mt-4">Close</Button>
                 </DialogClose>
-                </motion.div>
-              </DialogContent>
+              </motion.div>
+            </DialogContent>
           </Dialog>
         )}
       </AnimatePresence>
