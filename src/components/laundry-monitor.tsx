@@ -23,7 +23,6 @@ import { Switch } from "@/components/ui/switch";
 import { LaundryFloorplan } from "./LaundryFloorplan";
 import { MachineCard } from "./MachineCard"; // Import the new MachineCard component
 import { Machine } from "./types";
-import { useSocket } from "./useSocket";
 import { Skeleton } from "@/components/ui/skeleton";
 import WelcomeScreen from "./welcome-screen";
 import { Link } from "react-router-dom";
@@ -48,6 +47,43 @@ export function LaundryMonitorComponent() {
   const [isLoading, setIsLoading] = useState(true);
   const [showWelcomeScreen, setShowWelcomeScreen] = useState(false);
   const [preferredMachines, setPreferredMachines] = useState<string[]>([]);
+  const lambdaUrl = import.meta.env.VITE_REACT_APP_LAMBDA_URL;  // Access the Lambda URL from Vite environment variables
+
+    // Fetch data from Lambda URL
+    const fetchMachineStatus = useCallback(async () => {
+      try {
+        const response = await fetch(lambdaUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch machine data");
+        }
+  
+        const data = await response.json();
+        console.log("Fetched machine data:", data);
+        setMachines(data.data);  // Assuming the data is in 'data' field
+        setLastUpdated(new Date());
+      } catch (error) {
+        console.error("Error fetching machine status:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }, [lambdaUrl]);
+
+    
+      // Fetch machine data when the component mounts and every 5 minutes thereafter
+  useEffect(() => {
+    fetchMachineStatus(); // Fetch data when component mounts
+
+    const intervalId = setInterval(fetchMachineStatus, 300000); // Fetch every 5 minutes (300,000 ms)
+    setLastUpdated(new Date()); // Update last updated time
+
+    return () => clearInterval(intervalId); // Cleanup interval on component unmount
+  }, [fetchMachineStatus]);
 
   const headerVariants = {
     hidden: { opacity: 0, y: -20 },
@@ -59,13 +95,7 @@ export function LaundryMonitorComponent() {
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
   };
 
-  const websocketUrl = import.meta.env.VITE_REACT_APP_WEBSOCKET_URL;
-
-  if (!websocketUrl) {
-    throw new Error("WebSocket URL is not defined. Please check your .env file.");
-  }
   
-  const { socket, isConnected } = useSocket(websocketUrl);
   
   useEffect(() => {
     if ("Notification" in window && "PushManager" in window) {
@@ -105,43 +135,6 @@ export function LaundryMonitorComponent() {
       setShowWelcomeScreen(true);
     }
   }, []);
-
-  useEffect(() => {
-    if (isConnected && socket) {
-      // Ensure socket is not null
-      setIsLoading(false);
-
-      // Add the listener for machineData
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data)
-
-        if (data.type === "initial_state") {
-          console.log("Received initial state:", data.data);
-          setMachines(data.data);
-          setLastUpdated(new Date());
-        } else {
-          console.log("Received update:", data.data);
-          setMachines((prev) => {
-            const updatedMachines = prev.map((machine) => {
-              if (machine.machineID === data.data.machineID) {
-                console.log("Updating machine:", machine.machineID);
-                return { ...machine, ...data.data };
-              }
-              return machine;
-            });
-            return updatedMachines;
-          });
-          setLastUpdated(new Date());
-        }
-      };
-
-      // Cleanup the listener when the component is unmounted or socket changes
-
-      return () => {
-        if (socket) socket.close(); // Clean up WebSocket on unmount
-      };
-    }
-  }, [isConnected, socket]);
 
   useEffect(() => {
     document.body.classList.toggle("dark", isDarkMode);
