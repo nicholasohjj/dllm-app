@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Wifi, Battery, BarChart, Bell, Clock, Users } from "lucide-react"
 import { Link } from "react-router-dom"
-import { useDarkMode } from "./DarkModeContext"
+import { useDarkMode } from "../DarkModeContext"
 
 const containerVariants = {
   hidden: { opacity: 0 },

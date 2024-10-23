@@ -31,7 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import logo from "../assets/logo.svg";
 import { messaging } from "../firebase";
 import { getToken, onMessage } from "firebase/messaging"; // Import necessary functions
-import { useDarkMode } from "./DarkModeContext";
+import { useDarkMode } from "../DarkModeContext";
 import { useMachineSetup } from "./MachineSetup";
 
 export function LaundryMonitorComponent() {

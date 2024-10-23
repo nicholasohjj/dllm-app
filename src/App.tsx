@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import AboutUs from "./components/about-us";
 import CatchAllPage from "./components/page";
 import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import { DarkModeProvider } from "./components/DarkModeContext";
+import { getMessaging } from 'firebase/messaging';
+import { DarkModeProvider } from "./DarkModeContext";
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
