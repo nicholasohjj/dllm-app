@@ -48,7 +48,6 @@ export function LaundryMonitorComponent() {
   const [showWelcomeScreen, setShowWelcomeScreen] = useState(false);
   const [preferredMachines, setPreferredMachines] = useState<string[]>([]);
   const lambdaUrl = import.meta.env.VITE_REACT_APP_LAMBDA_URL;  // Access the Lambda URL from Vite environment variables
-  console.log("Lambda URL:", lambdaUrl);  // Log the Lambda URL
 
     // Fetch data from Lambda URL
     const fetchMachineStatus = useCallback(async () => {
