@@ -82,7 +82,7 @@ export function LaundryMonitorComponent() {
   useEffect(() => {
     fetchMachineStatus(); // Fetch data when component mounts
 
-    const intervalId = setInterval(fetchMachineStatus, 300000); // Fetch every 5 minutes (300,000 ms)
+    const intervalId = setInterval(fetchMachineStatus, 60000); // Fetch every 5 minutes (300,000 ms)
     setLastUpdated(new Date()); // Update last updated time
 
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
