@@ -503,14 +503,7 @@ export function LaundryMonitorComponent() {
               Available Dryers: {getAvailableMachinesCount("dryer")}
             </Badge>
           </div>
-          <div className="flex space-x-2">
-            <Badge variant="outline">
-              Est. Washer Wait: {getEstimatedWaitTime("washer")} min
-            </Badge>
-            <Badge variant="outline">
-              Est. Dryer Wait: {getEstimatedWaitTime("dryer")} min
-            </Badge>
-          </div>
+
         </div>
 
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -541,7 +534,6 @@ export function LaundryMonitorComponent() {
             <SelectContent>
               <SelectItem value="id">Machine ID</SelectItem>
               <SelectItem value="status">Status</SelectItem>
-              <SelectItem value="timeRemaining">Time Remaining</SelectItem>
             </SelectContent>
           </Select>
         </div>
