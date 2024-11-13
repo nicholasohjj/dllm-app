@@ -331,8 +331,8 @@ export function LaundryMonitorComponent() {
           if (filterStatus === "all") return true;
           if (filterStatus === "available")
             return machine.status === "available";
-          if (filterStatus === "finishing-soon")
-            return machine.status === "finishing-soon";
+          if (filterStatus === "in-use")
+            return machine.status === "in-use";
           return true;
         })
         .filter((machine) =>
@@ -524,7 +524,7 @@ export function LaundryMonitorComponent() {
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="available">Available</SelectItem>
-              <SelectItem value="finishing-soon">Finishing Soon</SelectItem>
+              <SelectItem value="in-use">In use</SelectItem>
             </SelectContent>
           </Select>
           <Select value={sortBy} onValueChange={setSortBy}>
