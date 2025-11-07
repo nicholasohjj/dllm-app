@@ -29,7 +29,8 @@ jobs:
       - name: Checkout target branch (not the PR merge ref)
         uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          token: ${{ secrets.PAT_WORKFLOW }}   # uses PAT for all fetch/push
+          persist-credentials: true            # leaves auth in repo config
           # real branch name
           ref: ${{ steps.target.outputs.ref }}
           # you need history for rebase
@@ -43,12 +44,13 @@ jobs:
       - run: npm ci
       - run: npx prettier --write .
 
-      - name: Commit & Rebase
+      - name: Commit, Rebase & Push (PAT)
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+          PAT: ${{ secrets.PAT_WORKFLOW }}   # must include: repo (or Contents write) + workflow
           TARGET_BRANCH: ${{ steps.target.outputs.ref }}
         run: |
           git add -A
@@ -57,8 +59,13 @@ jobs:
             exit 0
           fi
           git commit -m "style: auto-fix prettier formatting"
+
+          # set PAT remote before any network ops (fetch/rebase/push)
+          git remote set-url origin "https://x-access-token:${PAT}@github.com/${{ github.repository }}.git"
+
           # make sure we're up-to-date before pushing
           git fetch origin "$TARGET_BRANCH"
+
           # rebase onto the latest remote; if conflicts, bail out quietly
           if ! git rebase "origin/$TARGET_BRANCH"; then
             echo "Rebase conflict; aborting and leaving PR for a human."
@@ -66,10 +73,6 @@ jobs:
             exit 0
           fi
 
-      - name: Push (PAT with workflow scope)
-        env:
-          PAT: ${{ secrets.PAT_WORKFLOW }}   # must include workflow + contents/repo write
-          TARGET_BRANCH: ${{ steps.target.outputs.ref }}
-        run: |
-          git remote set-url origin "https://x-access-token:${PAT}@github.com/${{ github.repository }}.git"
+          # push; use --force-with-lease if you expect other bot commits racing
           git push origin "HEAD:refs/heads/${TARGET_BRANCH}"
+          # git push --force-with-lease origin "HEAD:refs/heads/${TARGET_BRANCH}"
