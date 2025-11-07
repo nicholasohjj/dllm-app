@@ -1,0 +1,9 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 General Discussion
+    url: https://github.com/NicholasOhJiaJun/dllm-app/discussions
+    about: Ask questions or discuss ideas with the community
+  - name: 📖 Documentation
+    url: https://github.com/NicholasOhJiaJun/dllm-app/blob/main/README.md
+    about: View project documentation
+
