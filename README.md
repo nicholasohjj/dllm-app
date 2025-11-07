@@ -1,50 +1,122 @@
-# React + TypeScript + Vite
+# DLLM App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Progressive Web App (PWA) built with React, TypeScript, and Vite for laundry machine monitoring.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🚀 Fast development with Vite
+- ⚛️ React 18 with TypeScript
+- 📱 Progressive Web App (PWA) support
+- 🎨 Modern UI with Tailwind CSS and Radix UI
+- 🔔 Web Push Notifications
+- 🌙 Dark mode support
+- 📊 Real-time laundry machine monitoring
 
-## Expanding the ESLint configuration
+## Quick Start
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+### Development
 
-- Configure the top-level `parserOptions` property like this:
+```bash
+# Install dependencies
+npm install
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-});
+# Start development server
+npm run dev
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+The app will be available at `http://localhost:5173`
 
-```js
-// eslint.config.js
-import react from "eslint-plugin-react";
+### Build for Production
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: "18.3" } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs["jsx-runtime"].rules,
-  },
-});
+```bash
+# Build the application
+npm run build
+
+# Preview production build locally
+npm run preview
 ```
+
+## Deployment with Nginx
+
+This project includes full nginx support for production deployment. See the [Nginx Deployment Guide](docs/nginx-deployment.md) for detailed instructions.
+
+### Quick Deploy with Docker
+
+```bash
+# Build and run with Docker Compose
+docker-compose up -d
+
+# Access the app at http://localhost
+```
+
+### Manual Nginx Setup
+
+```bash
+# Build the app
+npm run build
+
+# Copy nginx configuration
+sudo cp nginx.conf /etc/nginx/sites-available/dllm-app
+sudo ln -s /etc/nginx/sites-available/dllm-app /etc/nginx/sites-enabled/
+
+# Deploy files
+sudo mkdir -p /var/www/dllm-app
+sudo cp -r dist/* /var/www/dllm-app/
+sudo cp -r public/* /var/www/dllm-app/
+
+# Reload nginx
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+For more details, see [docs/nginx-deployment.md](docs/nginx-deployment.md)
+
+## Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint errors
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
+- `npm run check` - Run linting and format checks
+
+## Project Structure
+
+```
+dllm-app/
+├── api/                  # API endpoints
+├── docs/                 # Documentation
+├── public/               # Static assets
+│   ├── icons/           # PWA icons
+│   └── service-worker.js
+├── src/
+│   ├── components/      # React components
+│   ├── contexts/        # React contexts
+│   ├── hooks/           # Custom hooks
+│   ├── lib/             # Utilities
+│   └── types/           # TypeScript types
+├── nginx.conf           # Nginx configuration
+├── Dockerfile           # Docker configuration
+└── docker-compose.yml   # Docker Compose configuration
+```
+
+## Tech Stack
+
+- **Frontend:** React 18, TypeScript
+- **Build Tool:** Vite
+- **Styling:** Tailwind CSS
+- **UI Components:** Radix UI
+- **Routing:** React Router
+- **Animations:** Framer Motion
+- **Web Server:** Nginx (production)
+
+## Additional Documentation
+
+- [Web Push Setup Guide](docs/web-push-setup.md)
+- [Nginx Deployment Guide](docs/nginx-deployment.md)
+
+## License
+
+MIT
