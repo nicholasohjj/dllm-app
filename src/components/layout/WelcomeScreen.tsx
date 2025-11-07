@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { WelcomeScreenProps } from "./types";
+import { WelcomeScreenProps } from "@/types/machine.types";
 
 const WelcomeScreen = ({ isOpen, onClose }: WelcomeScreenProps) => {
   const [dontShowAgain, setDontShowAgain] = useState(false);
@@ -117,3 +117,4 @@ const WelcomeScreen = ({ isOpen, onClose }: WelcomeScreenProps) => {
 };
 
 export default WelcomeScreen;
+

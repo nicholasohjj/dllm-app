@@ -1,4 +1,4 @@
-import { Machine } from "./types";
+import { Machine } from "@/types/machine.types";
 import { motion, AnimatePresence } from "framer-motion";
 
 type LaundryFloorplanProps = {
@@ -168,3 +168,4 @@ export function LaundryFloorplan({
     </motion.div>
   );
 }
+

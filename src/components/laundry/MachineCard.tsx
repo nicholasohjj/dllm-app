@@ -19,9 +19,9 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle, CheckCircle2, Clock, Star } from "lucide-react";
-import { Machine } from "./types";
+import { Machine } from "@/types/machine.types";
 
 interface MachineCardProps {
   machine: Machine;
@@ -342,3 +342,4 @@ export function MachineCard({
     </>
   );
 }
+

@@ -1,4 +1,4 @@
-// types.ts
+// Machine types and interfaces
 
 export type Machine = {
   machineID: string; // Full ID (e.g., RVREB-W1)
@@ -13,3 +13,4 @@ export interface WelcomeScreenProps {
   isOpen: boolean;
   onClose: () => void;
 }
+

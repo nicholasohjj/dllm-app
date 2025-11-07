@@ -1,4 +1,4 @@
-import { Machine } from "./types";
+import { Machine } from "@/types/machine.types";
 
 const generateMachines = (): Machine[] => {
   // Generate washers
@@ -41,3 +41,4 @@ const generateMachines = (): Machine[] => {
 export function useMachineSetup() {
   return generateMachines();
 }
+

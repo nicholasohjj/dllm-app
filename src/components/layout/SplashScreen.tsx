@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
-import logo from "../assets/logo.svg";
+import logo from "@/assets/logo.svg";
 
 interface SplashScreenProps {
   onFinished: () => void;
@@ -95,3 +95,4 @@ export default function SplashScreen({
     </AnimatePresence>
   );
 }
+

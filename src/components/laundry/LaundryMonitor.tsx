@@ -20,16 +20,16 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { LaundryFloorplan } from "./LaundryFloorplan";
-import { MachineCard } from "./MachineCard"; // Import the new MachineCard component
-import { Machine } from "./types";
+import { LaundryFloorplan } from "@/components/laundry/LaundryFloorplan";
+import { MachineCard } from "@/components/laundry/MachineCard";
+import { Machine } from "@/types/machine.types";
 import { Skeleton } from "@/components/ui/skeleton";
-import WelcomeScreen from "./welcome-screen";
+import WelcomeScreen from "@/components/layout/WelcomeScreen";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import logo from "../assets/logo.svg";
-import { useDarkMode } from "../DarkModeContext";
-import { useMachineSetup } from "./MachineSetup";
+import logo from "@/assets/logo.svg";
+import { useDarkMode } from "@/contexts/DarkModeContext";
+import { useMachineSetup } from "@/hooks/useMachineSetup";
 
 export function LaundryMonitorComponent() {
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -577,3 +577,4 @@ export function LaundryMonitorComponent() {
     </motion.div>
   );
 }
+
