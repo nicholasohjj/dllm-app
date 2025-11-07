@@ -1,11 +1,15 @@
 import { WebPush } from "web-push";
 
-// Make sure you generate VAPID keys (see below)
-const publicKey =
-  "BHQcDrGdqk0yOnKqH-ZRalMsvO8iAcKWInaBrp27Wsr6NJ5gHoGAREwTJwdtXvbvPjSzZneZ7QPDY5OUm-q_ix8";
-const privateKey = "BQvKmklEPSD64pLHlmSYnWUkR8mxolW2Oyr_00lFtLg";
+// VAPID keys should be stored in environment variables
+const publicKey = process.env.VAPID_PUBLIC_KEY;
+const privateKey = process.env.VAPID_PRIVATE_KEY;
+const subject = process.env.VAPID_SUBJECT || "mailto:your-email@example.com";
 
-WebPush.setVapidDetails("mailto:your-email@example.com", publicKey, privateKey);
+if (!publicKey || !privateKey) {
+  throw new Error("VAPID keys are not configured. Please set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY environment variables.");
+}
+
+WebPush.setVapidDetails(subject, publicKey, privateKey);
 
 export default async (req, res) => {
   if (req.method === "POST") {
