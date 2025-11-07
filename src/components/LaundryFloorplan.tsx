@@ -123,7 +123,8 @@ export function LaundryFloorplan({
               <motion.g
                 key={machine.machineID}
                 onClick={() =>
-                  machine.status !== "disabled" && onSelectMachine(machine.machineID)
+                  machine.status !== "disabled" &&
+                  onSelectMachine(machine.machineID)
                 }
                 className={
                   machine.status === "disabled"

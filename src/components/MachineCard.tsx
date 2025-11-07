@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Badge } from "@/components/ui/badge"
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -17,26 +17,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
-} from "@/components/ui/dialog"
-import { Progress } from "@/components/ui/progress"
-import { Button } from "./ui/button"
-import {
-  Loader2,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  Star,
-} from "lucide-react"
-import { Machine } from "./types"
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "./ui/button";
+import { Loader2, AlertCircle, CheckCircle2, Clock, Star } from "lucide-react";
+import { Machine } from "./types";
 
 interface MachineCardProps {
-  machine: Machine
-  getStatusColor: (status: Machine["status"]) => string
-  isOpen: boolean
-  onClose: () => void
-  onClick: () => void
-  isPreferred: boolean
-  onTogglePreferred: () => void
+  machine: Machine;
+  getStatusColor: (status: Machine["status"]) => string;
+  isOpen: boolean;
+  onClose: () => void;
+  onClick: () => void;
+  isPreferred: boolean;
+  onTogglePreferred: () => void;
 }
 
 export function MachineCard({
@@ -48,46 +42,52 @@ export function MachineCard({
   isPreferred,
   onTogglePreferred,
 }: MachineCardProps) {
-  const [progress, setProgress] = useState(0)
-  const [error, setError] = useState<string | null>(null)
+  const [progress, setProgress] = useState(0);
+  const [error] = useState<string | null>(null);
 
   useEffect(() => {
     if (machine.status === "in-use" || machine.status === "finishing-soon") {
       // Simulate progress based on status
-      setProgress(machine.status === "finishing-soon" ? 75 : 50)
+      setProgress(machine.status === "finishing-soon" ? 75 : 50);
     } else if (machine.status === "complete") {
-      setProgress(100)
+      setProgress(100);
     }
-  }, [machine.status])
+  }, [machine.status]);
 
   const getTimeEstimate = useCallback(() => {
     switch (machine.status) {
       case "in-use":
-        return "In use"
+        return "In use";
       case "finishing-soon":
-        return "Finishing soon..."
+        return "Finishing soon...";
       case "complete":
-        return "Complete"
+        return "Complete";
       case "available":
-        return "Available"
+        return "Available";
       default:
-        return "Status unknown"
+        return "Status unknown";
     }
-  }, [machine.status])
+  }, [machine.status]);
 
   const getStatusIcon = useMemo(() => {
     switch (machine.status) {
       case "in-use":
       case "finishing-soon":
-        return <Clock className="h-5 w-5 text-yellow-500" aria-hidden="true" />
+        return <Clock className="h-5 w-5 text-yellow-500" aria-hidden="true" />;
       case "complete":
-        return <CheckCircle2 className="h-5 w-5 text-blue-500" aria-hidden="true" />
+        return (
+          <CheckCircle2 className="h-5 w-5 text-blue-500" aria-hidden="true" />
+        );
       case "available":
-        return <CheckCircle2 className="h-5 w-5 text-green-500" aria-hidden="true" />
+        return (
+          <CheckCircle2 className="h-5 w-5 text-green-500" aria-hidden="true" />
+        );
       default:
-        return <AlertCircle className="h-5 w-5 text-gray-500" aria-hidden="true" />
+        return (
+          <AlertCircle className="h-5 w-5 text-gray-500" aria-hidden="true" />
+        );
     }
-  }, [machine.status])
+  }, [machine.status]);
 
   const cardContent = useMemo(() => {
     if (error) {
@@ -100,7 +100,7 @@ export function MachineCard({
         >
           Error: {error}. Please try again later.
         </motion.p>
-      )
+      );
     }
 
     switch (machine.status) {
@@ -129,7 +129,7 @@ export function MachineCard({
               </p>
             </motion.div>
           </motion.div>
-        )
+        );
       case "complete":
         return (
           <motion.p
@@ -140,7 +140,7 @@ export function MachineCard({
           >
             Ready for pickup!
           </motion.p>
-        )
+        );
       case "available":
         return (
           <motion.p
@@ -151,7 +151,7 @@ export function MachineCard({
           >
             Start your laundry now!
           </motion.p>
-        )
+        );
       default:
         return (
           <motion.p
@@ -162,9 +162,9 @@ export function MachineCard({
           >
             This machine is not supported.
           </motion.p>
-        )
+        );
     }
-  }, [error, machine.status, progress, getTimeEstimate])
+  }, [error, machine.status, progress, getTimeEstimate]);
 
   return (
     <>
@@ -189,8 +189,8 @@ export function MachineCard({
                   variant="ghost"
                   size="icon"
                   onClick={(e) => {
-                    e.stopPropagation()
-                    onTogglePreferred()
+                    e.stopPropagation();
+                    onTogglePreferred();
                   }}
                 >
                   <motion.div
@@ -199,7 +199,9 @@ export function MachineCard({
                   >
                     <Star
                       className={`h-5 w-5 ${
-                        isPreferred ? "text-yellow-400 fill-current" : "text-gray-400"
+                        isPreferred
+                          ? "text-yellow-400 fill-current"
+                          : "text-gray-400"
                       }`}
                     />
                   </motion.div>
@@ -221,9 +223,7 @@ export function MachineCard({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <AnimatePresence mode="wait">
-              {cardContent}
-            </AnimatePresence>
+            <AnimatePresence mode="wait">{cardContent}</AnimatePresence>
           </CardContent>
         </Card>
       </motion.div>
@@ -274,12 +274,13 @@ export function MachineCard({
                         >
                           <motion.div
                             animate={{ rotate: 360 }}
-                            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                            transition={{
+                              repeat: Infinity,
+                              duration: 1,
+                              ease: "linear",
+                            }}
                           >
-                            <Loader2
-                              className="h-6 w-6"
-                              aria-hidden="true"
-                            />
+                            <Loader2 className="h-6 w-6" aria-hidden="true" />
                           </motion.div>
                         </motion.div>
                         <motion.span
@@ -339,5 +340,5 @@ export function MachineCard({
         )}
       </AnimatePresence>
     </>
-  )
+  );
 }
