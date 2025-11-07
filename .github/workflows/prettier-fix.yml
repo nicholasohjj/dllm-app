@@ -3,10 +3,10 @@ name: Auto-fix Prettier
 on:
   push:
     branches:
-      - main
+      - [main, develop, feature/*]
   pull_request:
     branches:
-      - main
+      - [main, develop, feature/*]
 
 jobs:
   prettier-fix:
