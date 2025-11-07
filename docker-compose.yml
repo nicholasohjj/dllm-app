@@ -15,7 +15,6 @@ services:
 networks:
   dllm-network:
     driver: bridge
-
 # Optional: Add backend service if you have one
 # services:
 #   backend:

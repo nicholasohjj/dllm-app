@@ -90,6 +90,7 @@ sudo cp nginx.conf /etc/nginx/sites-available/dllm-app
 2. **Update the configuration:**
 
 Edit `/etc/nginx/sites-available/dllm-app` and update:
+
 - `server_name` to your domain
 - `root` path to point to your `dist/` directory (e.g., `/var/www/dllm-app/dist`)
 
@@ -142,7 +143,7 @@ server {
 
     ssl_certificate /path/to/cert.pem;
     ssl_certificate_key /path/to/key.pem;
-    
+
     # Modern SSL configuration
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
@@ -253,7 +254,8 @@ Update `docker-compose.yml` to include your backend service.
 
 ### Issue: Docker build fails
 
-**Solution:** 
+**Solution:**
+
 - Check if port 80 is already in use: `sudo lsof -i :80`
 - Ensure Docker has enough resources allocated
 - Check build logs: `docker-compose logs`
@@ -261,6 +263,7 @@ Update `docker-compose.yml` to include your backend service.
 ### Issue: Assets not loading
 
 **Solution:**
+
 - Verify the `base` setting in `vite.config.ts` matches your deployment path
 - Check nginx error logs for permission issues
 - Ensure the `dist/` directory contains all built assets
@@ -271,4 +274,3 @@ Update `docker-compose.yml` to include your backend service.
 - [Docker Documentation](https://docs.docker.com/)
 - [Vite Deployment Guide](https://vitejs.dev/guide/static-deploy.html)
 - [Service Worker Best Practices](https://web.dev/service-worker-lifecycle/)
-
