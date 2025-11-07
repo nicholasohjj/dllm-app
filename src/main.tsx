@@ -4,7 +4,6 @@ import { createRoot } from "react-dom/client"; // New API from React 18 to creat
 import App from "./App.tsx"; // Import the main application component
 import "./index.css"; // Import global CSS styles for the application
 import { BrowserRouter } from "react-router-dom"; // Import BrowserRouter to enable routing within the app
-import { Analytics } from "@vercel/analytics/react";
 // Create the root for rendering the app and target the 'root' div in the HTML
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -13,7 +12,6 @@ createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       {" "}
       {/* Enable React Router for handling navigation in the app */}
-      <Analytics />
       <App />{" "}
       {/* Render the main App component which will contain all other components */}
     </BrowserRouter>
