@@ -17,7 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useDarkMode } from "../DarkModeContext";
+import { useDarkMode } from "@/contexts/DarkModeContext";
 
 const containerVariants = {
   hidden: { opacity: 0 },
