@@ -577,4 +577,3 @@ export function LaundryMonitorComponent() {
     </motion.div>
   );
 }
-

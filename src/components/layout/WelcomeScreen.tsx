@@ -117,4 +117,3 @@ const WelcomeScreen = ({ isOpen, onClose }: WelcomeScreenProps) => {
 };
 
 export default WelcomeScreen;
-

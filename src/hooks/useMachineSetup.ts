@@ -41,4 +41,3 @@ const generateMachines = (): Machine[] => {
 export function useMachineSetup() {
   return generateMachines();
 }
-

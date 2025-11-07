@@ -13,4 +13,3 @@ export interface WelcomeScreenProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
