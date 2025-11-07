@@ -1,8 +1,8 @@
-import { Toaster } from "@/components/ui/toaster"
-import { ReactNode } from "react"
+import { Toaster } from "@/components/ui/toaster";
+import { ReactNode } from "react";
 
 interface RootLayoutProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
@@ -14,5 +14,5 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <Toaster />
       </body>
     </html>
-  )
+  );
 }

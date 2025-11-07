@@ -1,19 +1,26 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { WelcomeScreenProps } from './types'
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { WelcomeScreenProps } from "./types";
 
 const WelcomeScreen = ({ isOpen, onClose }: WelcomeScreenProps) => {
-  const [dontShowAgain, setDontShowAgain] = useState(false)
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleClose = () => {
     if (dontShowAgain) {
-      localStorage.setItem('welcomeScreenSeen', 'true')
+      localStorage.setItem("welcomeScreenSeen", "true");
     }
-    onClose()
-  }
+    onClose();
+  };
 
   const containerVariants = {
     hidden: { opacity: 0, scale: 0.8 },
@@ -27,12 +34,12 @@ const WelcomeScreen = ({ isOpen, onClose }: WelcomeScreenProps) => {
       },
     },
     exit: { opacity: 0, scale: 0.8, transition: { duration: 0.3 } },
-  }
+  };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  }
+  };
 
   return (
     <AnimatePresence>
@@ -47,7 +54,9 @@ const WelcomeScreen = ({ isOpen, onClose }: WelcomeScreenProps) => {
             >
               <DialogHeader className="space-y-2">
                 <motion.div variants={itemVariants}>
-                  <DialogTitle className="text-xl sm:text-2xl font-bold text-center">Welcome to DLLM Laundry Monitor</DialogTitle>
+                  <DialogTitle className="text-xl sm:text-2xl font-bold text-center">
+                    Welcome to DLLM Laundry Monitor
+                  </DialogTitle>
                 </motion.div>
                 <motion.div variants={itemVariants}>
                   <DialogDescription className="text-sm sm:text-base text-center">
@@ -56,20 +65,35 @@ const WelcomeScreen = ({ isOpen, onClose }: WelcomeScreenProps) => {
                 </motion.div>
               </DialogHeader>
               <motion.div className="py-4" variants={itemVariants}>
-                <h3 className="font-medium mb-2 text-base sm:text-lg">Key Features:</h3>
+                <h3 className="font-medium mb-2 text-base sm:text-lg">
+                  Key Features:
+                </h3>
                 <ul className="list-disc pl-5 space-y-1 text-sm sm:text-base">
-                  <motion.li variants={itemVariants}>Real-time machine status updates</motion.li>
-                  <motion.li variants={itemVariants}>Estimated wait times for washers and dryers</motion.li>
-                  <motion.li variants={itemVariants}>Interactive laundry room floorplan</motion.li>
-                  <motion.li variants={itemVariants}>Dark mode for comfortable viewing</motion.li>
+                  <motion.li variants={itemVariants}>
+                    Real-time machine status updates
+                  </motion.li>
+                  <motion.li variants={itemVariants}>
+                    Estimated wait times for washers and dryers
+                  </motion.li>
+                  <motion.li variants={itemVariants}>
+                    Interactive laundry room floorplan
+                  </motion.li>
+                  <motion.li variants={itemVariants}>
+                    Dark mode for comfortable viewing
+                  </motion.li>
                 </ul>
               </motion.div>
               <DialogFooter className="flex-col sm:flex-row items-center sm:justify-between space-y-4 sm:space-y-0">
-                <motion.div className="flex items-center space-x-2" variants={itemVariants}>
+                <motion.div
+                  className="flex items-center space-x-2"
+                  variants={itemVariants}
+                >
                   <Checkbox
                     id="dontShowAgain"
                     checked={dontShowAgain}
-                    onCheckedChange={(checked) => setDontShowAgain(checked as boolean)}
+                    onCheckedChange={(checked) =>
+                      setDontShowAgain(checked as boolean)
+                    }
                   />
                   <label
                     htmlFor="dontShowAgain"
@@ -89,7 +113,7 @@ const WelcomeScreen = ({ isOpen, onClose }: WelcomeScreenProps) => {
         </Dialog>
       )}
     </AnimatePresence>
-  )
-}
+  );
+};
 
-export default WelcomeScreen
+export default WelcomeScreen;

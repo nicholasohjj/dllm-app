@@ -40,45 +40,43 @@ export function LaundryMonitorComponent() {
   const [selectedmachineID, setSelectedmachineID] = useState<string | null>(
     null
   );
-  const { isDarkMode, toggleDarkMode } = useDarkMode();  // Use the hook to access dark mode state
+  const { isDarkMode, toggleDarkMode } = useDarkMode(); // Use the hook to access dark mode state
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("id");
   const [isLoading, setIsLoading] = useState(true);
   const [showWelcomeScreen, setShowWelcomeScreen] = useState(false);
   const [preferredMachines, setPreferredMachines] = useState<string[]>([]);
-  const lambdaUrl = import.meta.env.VITE_REACT_APP_LAMBDA_URL;  // Access the Lambda URL from Vite environment variables
+  const lambdaUrl = import.meta.env.VITE_REACT_APP_LAMBDA_URL; // Access the Lambda URL from Vite environment variables
 
-    // Fetch data from Lambda URL
-    const fetchMachineStatus = useCallback(async () => {
-      try {
-          const response = await fetch(lambdaUrl, {
-              method: "GET",
-              headers: {
-                  "Content-Type": "application/json",
-              },
-          });
-  
-          if (!response.ok) {
-              const errorText = await response.text(); // Get response as text
-              console.error("Fetch error response:", errorText); // Log error response
-              throw new Error("Failed to fetch machine data");
-          }
-  
-          const data = await response.json();
-          console.log("Fetched machine data:", data);
-          setMachines(data.data);
-          setLastUpdated(new Date());
-      } catch (error) {
-          console.error("Error fetching machine status:", error);
-      } finally {
-          setIsLoading(false);
+  // Fetch data from Lambda URL
+  const fetchMachineStatus = useCallback(async () => {
+    try {
+      const response = await fetch(lambdaUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text(); // Get response as text
+        console.error("Fetch error response:", errorText); // Log error response
+        throw new Error("Failed to fetch machine data");
       }
-  }, [lambdaUrl]);
-  
 
-    
-      // Fetch machine data when the component mounts and every 5 minutes thereafter
+      const data = await response.json();
+      console.log("Fetched machine data:", data);
+      setMachines(data.data);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error("Error fetching machine status:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [lambdaUrl]);
+
+  // Fetch machine data when the component mounts and every 5 minutes thereafter
   useEffect(() => {
     fetchMachineStatus(); // Fetch data when component mounts
 
@@ -98,8 +96,6 @@ export function LaundryMonitorComponent() {
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
   };
 
-  
-  
   useEffect(() => {
     if ("Notification" in window && "PushManager" in window) {
       navigator.serviceWorker.ready.then((registration) => {
@@ -130,6 +126,7 @@ export function LaundryMonitorComponent() {
     return () => {
       darkModeMediaQuery.removeEventListener("change", handleDarkModeChange);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -172,6 +169,7 @@ export function LaundryMonitorComponent() {
         darkModeMediaQuery.removeEventListener("change", handleDarkModeChange);
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const subscribeToPushNotifications = useCallback(async () => {
@@ -199,21 +197,7 @@ export function LaundryMonitorComponent() {
         variant: "destructive",
       });
     }
-  }, []);
-
-  const sendSubscriptionToServer = async (token: string) => {
-    try {
-      await fetch("/api/subscribe", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token }),
-      });
-    } catch (error) {
-      console.error("Failed to send subscription to the server:", error);
-    }
-  };
+  }, [toast]);
 
   // Push Notification unsubscription logic
   const unsubscribeFromPushNotifications = useCallback(async () => {
@@ -242,8 +226,10 @@ export function LaundryMonitorComponent() {
     }
   }, [toast]);
 
-  const sendUnsubscriptionToServer = async (subscription: PushSubscription | null) => {
-    if (!subscription) return;  // Handle null case
+  const sendUnsubscriptionToServer = async (
+    subscription: PushSubscription | null
+  ) => {
+    if (!subscription) return; // Handle null case
     try {
       await fetch("/api/unsubscribe", {
         method: "POST",
@@ -256,7 +242,6 @@ export function LaundryMonitorComponent() {
       console.error("Failed to send unsubscription to the server:", error);
     }
   };
-  
 
   const togglePreferredMachine = (machineID: string) => {
     setPreferredMachines((prev) => {
@@ -292,22 +277,6 @@ export function LaundryMonitorComponent() {
     [machines]
   );
 
-  const getEstimatedWaitTime = useCallback(
-    (type: "washer" | "dryer") => {
-      const inUseMachines = machines.filter(
-        (machine) => machine.type === type && machine.status === "in-use"
-      );
-      if (inUseMachines.length === 0) return 0;
-      const avgTimeRemaining =
-        inUseMachines.reduce(
-          (sum, machine) => sum + (machine.timeRemaining || 0),
-          0
-        ) / inUseMachines.length;
-      return Math.ceil(avgTimeRemaining);
-    },
-    [machines]
-  );
-
   const getStatusColor = useCallback((status: Machine["status"]) => {
     const statusColors = {
       available: "bg-green-500",
@@ -331,8 +300,7 @@ export function LaundryMonitorComponent() {
           if (filterStatus === "all") return true;
           if (filterStatus === "available")
             return machine.status === "available";
-          if (filterStatus === "in-use")
-            return machine.status === "in-use";
+          if (filterStatus === "in-use") return machine.status === "in-use";
           return true;
         })
         .filter((machine) =>
@@ -409,7 +377,9 @@ export function LaundryMonitorComponent() {
                   onClose={() => setSelectedmachineID(null)}
                   onClick={() => setSelectedmachineID(machine.machineID)}
                   isPreferred={preferredMachines.includes(machine.machineID)}
-                  onTogglePreferred={() => togglePreferredMachine(machine.machineID)}
+                  onTogglePreferred={() =>
+                    togglePreferredMachine(machine.machineID)
+                  }
                 />
               </motion.div>
             ))}
@@ -433,12 +403,14 @@ export function LaundryMonitorComponent() {
     >
       {" "}
       <div className="container mx-auto px-4 py-8 flex-grow">
-      <motion.header
+        <motion.header
           className="flex flex-col lg:flex-row justify-between items-center mb-8 space-y-4 lg:space-y-0"
           variants={headerVariants}
           initial="hidden"
           animate="visible"
-        >          <div className="flex flex-col sm:flex-row items-center sm:space-x-4">
+        >
+          {" "}
+          <div className="flex flex-col sm:flex-row items-center sm:space-x-4">
             {" "}
             <img
               src={logo}
@@ -503,7 +475,6 @@ export function LaundryMonitorComponent() {
               Available Dryers: {getAvailableMachinesCount("dryer")}
             </Badge>
           </div>
-
         </div>
 
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -543,7 +514,9 @@ export function LaundryMonitorComponent() {
             <h2 className="text-2xl font-semibold mb-4">Preferred Machines</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {machines
-                .filter((machine) => preferredMachines.includes(machine.machineID))
+                .filter((machine) =>
+                  preferredMachines.includes(machine.machineID)
+                )
                 .map((machine) => (
                   <MachineCard
                     key={machine.machineID}
@@ -553,7 +526,9 @@ export function LaundryMonitorComponent() {
                     onClose={() => setSelectedmachineID(null)}
                     onClick={() => setSelectedmachineID(machine.machineID)}
                     isPreferred={true}
-                    onTogglePreferred={() => togglePreferredMachine(machine.machineID)}
+                    onTogglePreferred={() =>
+                      togglePreferredMachine(machine.machineID)
+                    }
                   />
                 ))}
             </div>

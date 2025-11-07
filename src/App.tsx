@@ -8,15 +8,15 @@ import { DarkModeProvider } from "./DarkModeContext";
 function App() {
   return (
     <>
-    <DarkModeProvider>
-      <Toaster />
-      <Routes>
-        {/* Define route paths and corresponding components */}
-        <Route path="/" element={<LaundryMonitorComponent />} />
-        <Route path="/about" element={<AboutUs />} />
-        <Route path="*" element={<CatchAllPage/>} />
-      </Routes>
-    </DarkModeProvider>
+      <DarkModeProvider>
+        <Toaster />
+        <Routes>
+          {/* Define route paths and corresponding components */}
+          <Route path="/" element={<LaundryMonitorComponent />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="*" element={<CatchAllPage />} />
+        </Routes>
+      </DarkModeProvider>
     </>
   );
 }

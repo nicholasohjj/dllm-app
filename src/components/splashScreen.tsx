@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2 } from 'lucide-react'
-import logo from "../assets/logo.svg"
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
+import logo from "../assets/logo.svg";
 
 interface SplashScreenProps {
-  onFinished: () => void
-  duration?: number
-  logoSize?: number
-  title?: string
-  subtitle?: string
+  onFinished: () => void;
+  duration?: number;
+  logoSize?: number;
+  title?: string;
+  subtitle?: string;
 }
 
 export default function SplashScreen({
@@ -18,25 +18,25 @@ export default function SplashScreen({
   duration = 3000,
   logoSize = 128,
   title = "DLLM Laundry Monitor",
-  subtitle = "Smart IoT-based Laundry Management"
+  subtitle = "Smart IoT-based Laundry Management",
 }: SplashScreenProps) {
-  const [showLoader, setShowLoader] = useState(false)
-  const [isVisible, setIsVisible] = useState(true)
+  const [showLoader, setShowLoader] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const loaderTimer = setTimeout(() => {
-      setShowLoader(true)
-    }, duration / 3)
+      setShowLoader(true);
+    }, duration / 3);
 
     const finishTimer = setTimeout(() => {
-      setIsVisible(false)
-    }, duration)
+      setIsVisible(false);
+    }, duration);
 
     return () => {
-      clearTimeout(loaderTimer)
-      clearTimeout(finishTimer)
-    }
-  }, [duration])
+      clearTimeout(loaderTimer);
+      clearTimeout(finishTimer);
+    };
+  }, [duration]);
 
   return (
     <AnimatePresence onExitComplete={onFinished}>
@@ -82,7 +82,10 @@ export default function SplashScreen({
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <Loader2 className="w-8 h-8 text-white animate-spin mx-auto" aria-label="Loading" />
+                  <Loader2
+                    className="w-8 h-8 text-white animate-spin mx-auto"
+                    aria-label="Loading"
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -90,5 +93,5 @@ export default function SplashScreen({
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion";
 import { Link, useParams } from "react-router-dom";
 
 export default function CatchAllPage() {
@@ -28,7 +28,7 @@ export default function CatchAllPage() {
         staggerChildren: 0.1,
       },
     },
-  }
+  };
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
@@ -36,8 +36,7 @@ export default function CatchAllPage() {
       y: 0,
       opacity: 1,
     },
-  }
-
+  };
 
   return (
     <motion.div
@@ -48,27 +47,23 @@ export default function CatchAllPage() {
         isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
       }`}
     >
-            <motion.h1
-        variants={itemVariants}
-        className="text-4xl font-bold mb-4"
-      >404 - Page Not Found
+      <motion.h1 variants={itemVariants} className="text-4xl font-bold mb-4">
+        404 - Page Not Found
       </motion.h1>
-      <motion.p
-        variants={itemVariants}
-        className="text-xl mb-8"
-      >The page you're looking for doesn't exist.</motion.p>
-            <AnimatePresence>
-
-      {slug && (
-                  <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="mb-4"
-                >
-          You tried to access: /{slug}
+      <motion.p variants={itemVariants} className="text-xl mb-8">
+        The page you're looking for doesn't exist.
+      </motion.p>
+      <AnimatePresence>
+        {slug && (
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="mb-4"
+          >
+            You tried to access: /{slug}
           </motion.p>
-      )}
+        )}
       </AnimatePresence>
       <motion.div
         variants={itemVariants}
@@ -83,10 +78,9 @@ export default function CatchAllPage() {
               : "bg-blue-500 text-white hover:bg-blue-600"
           } transition-colors duration-200`}
         >
-        Go back to homepage
-      </Link>
+          Go back to homepage
+        </Link>
       </motion.div>
-    
     </motion.div>
   );
 }

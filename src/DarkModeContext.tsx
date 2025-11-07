@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 
 // Define the shape of the Dark Mode context
 interface DarkModeContextType {
@@ -7,7 +13,9 @@ interface DarkModeContextType {
 }
 
 // Provide a default value for the context
-const DarkModeContext = createContext<DarkModeContextType | undefined>(undefined);
+const DarkModeContext = createContext<DarkModeContextType | undefined>(
+  undefined
+);
 
 interface DarkModeProviderProps {
   children: ReactNode; // Define the type for children
@@ -19,7 +27,7 @@ export const DarkModeProvider = ({ children }: DarkModeProviderProps) => {
   useEffect(() => {
     // Retrieve the saved dark mode preference from localStorage
     const savedDarkMode = localStorage.getItem("darkMode");
-    
+
     if (savedDarkMode) {
       setIsDarkMode(savedDarkMode === "true");
     } else {
@@ -30,7 +38,8 @@ export const DarkModeProvider = ({ children }: DarkModeProviderProps) => {
       setIsDarkMode(darkModeMediaQuery.matches);
 
       // Listen for system preference changes
-      const handleDarkModeChange = (event: MediaQueryListEvent) => setIsDarkMode(event.matches);
+      const handleDarkModeChange = (event: MediaQueryListEvent) =>
+        setIsDarkMode(event.matches);
       darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
 
       return () => {
@@ -57,9 +66,10 @@ export const DarkModeProvider = ({ children }: DarkModeProviderProps) => {
 };
 
 // Custom hook to use dark mode state
+// eslint-disable-next-line react-refresh/only-export-components
 export const useDarkMode = () => {
   const context = useContext(DarkModeContext);
-  
+
   if (context === undefined) {
     throw new Error("useDarkMode must be used within a DarkModeProvider");
   }

@@ -1,4 +1,4 @@
-import { Machine } from './types';
+import { Machine } from "./types";
 
 const generateMachines = (): Machine[] => {
   // Generate washers
@@ -6,7 +6,7 @@ const generateMachines = (): Machine[] => {
     const washerNumber = 8 - i;
     const machineID = `RVREB-W${washerNumber}`; // Full washer ID
     const shortName = `W${washerNumber}`; // Short washer name
-    const status: Machine['status'] = "disabled"; // Set all washers to disabled
+    const status: Machine["status"] = "disabled"; // Set all washers to disabled
 
     return {
       machineID: machineID,
@@ -23,7 +23,7 @@ const generateMachines = (): Machine[] => {
     const dryerNumber = i + 1; // Dryer number starts from 1 and increments
     const machineID = `RVREB-D${dryerNumber}`; // Full dryer ID
     const shortName = `D${dryerNumber}`; // Short dryer name
-    const status: Machine['status'] = "disabled"; // Set all dryers to disabled
+    const status: Machine["status"] = "disabled"; // Set all dryers to disabled
 
     return {
       machineID: machineID,
