@@ -11,11 +11,10 @@ permissions:
 jobs:
   label:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Label PR based on files changed
         uses: actions/labeler@v5
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/labeler.yml
-

@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
   schedule:
     # Run at 02:00 UTC every Monday
-    - cron: '0 2 * * 1'
+    - cron: "0 2 * * 1"
 
 jobs:
   analyze:
@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ['javascript-typescript']
+        language: ["javascript-typescript"]
 
     steps:
       - name: Checkout repository
@@ -40,4 +40,3 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{matrix.language}}"
-

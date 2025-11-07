@@ -1,54 +1,53 @@
 # Label configuration for PR auto-labeling
 
-'documentation':
+"documentation":
   - changed-files:
-    - any-glob-to-any-file: ['**/*.md', 'docs/**']
+      - any-glob-to-any-file: ["**/*.md", "docs/**"]
 
-'dependencies':
+"dependencies":
   - changed-files:
-    - any-glob-to-any-file: ['package.json', 'bun.lock', 'package-lock.json']
+      - any-glob-to-any-file: ["package.json", "bun.lock", "package-lock.json"]
 
-'ci/cd':
+"ci/cd":
   - changed-files:
-    - any-glob-to-any-file: ['.github/**']
+      - any-glob-to-any-file: [".github/**"]
 
-'frontend':
+"frontend":
   - changed-files:
-    - any-glob-to-any-file: ['src/**/*.tsx', 'src/**/*.ts', 'src/**/*.css']
+      - any-glob-to-any-file: ["src/**/*.tsx", "src/**/*.ts", "src/**/*.css"]
 
-'components':
+"components":
   - changed-files:
-    - any-glob-to-any-file: ['src/components/**']
+      - any-glob-to-any-file: ["src/components/**"]
 
-'ui':
+"ui":
   - changed-files:
-    - any-glob-to-any-file: ['src/components/ui/**']
+      - any-glob-to-any-file: ["src/components/ui/**"]
 
-'laundry':
+"laundry":
   - changed-files:
-    - any-glob-to-any-file: ['src/components/laundry/**']
+      - any-glob-to-any-file: ["src/components/laundry/**"]
 
-'api':
+"api":
   - changed-files:
-    - any-glob-to-any-file: ['api/**']
+      - any-glob-to-any-file: ["api/**"]
 
-'config':
+"config":
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/*.config.js'
-      - '**/*.config.ts'
-      - 'tsconfig*.json'
-      - '.eslintrc*'
-      - '.prettierrc*'
+      - any-glob-to-any-file:
+          - "**/*.config.js"
+          - "**/*.config.ts"
+          - "tsconfig*.json"
+          - ".eslintrc*"
+          - ".prettierrc*"
 
-'pwa':
+"pwa":
   - changed-files:
-    - any-glob-to-any-file:
-      - 'manifest.json'
-      - 'public/service-worker.js'
-      - 'public/icons/**'
+      - any-glob-to-any-file:
+          - "manifest.json"
+          - "public/service-worker.js"
+          - "public/icons/**"
 
-'styles':
+"styles":
   - changed-files:
-    - any-glob-to-any-file: ['**/*.css', 'tailwind.config.js']
-
+      - any-glob-to-any-file: ["**/*.css", "tailwind.config.js"]

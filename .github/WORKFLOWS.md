@@ -5,15 +5,18 @@ This document describes all the GitHub Actions workflows configured for this pro
 ## 📋 Workflows Overview
 
 ### 1. CI Workflow (`ci.yml`)
+
 **Triggers:** Push to `main`/`develop`, Pull Requests
 
 **Purpose:** Continuous Integration checks to ensure code quality
 
 **Jobs:**
+
 - **Quality Check**: Runs type checking, linting, and format checking
 - **Build**: Builds the project and uploads artifacts
 
 **What it does:**
+
 - ✅ Type checks with TypeScript
 - ✅ Lints code with ESLint
 - ✅ Checks code formatting with Prettier
@@ -23,16 +26,19 @@ This document describes all the GitHub Actions workflows configured for this pro
 ---
 
 ### 2. Deploy Workflow (`deploy.yml`)
+
 **Triggers:** Push to `main`, Manual dispatch
 
 **Purpose:** Automatically deploys the app to GitHub Pages
 
 **Setup Required:**
+
 1. Go to repository Settings → Pages
 2. Set Source to "GitHub Actions"
 3. The workflow will deploy on every push to `main`
 
 **What it does:**
+
 - 🚀 Builds the production version
 - 🌐 Deploys to GitHub Pages
 - 📦 Serves your PWA application
@@ -40,11 +46,13 @@ This document describes all the GitHub Actions workflows configured for this pro
 ---
 
 ### 3. CodeQL Security Analysis (`codeql.yml`)
+
 **Triggers:** Push to `main`/`develop`, Pull Requests, Weekly schedule (Monday 2 AM UTC)
 
 **Purpose:** Automated security vulnerability scanning
 
 **What it does:**
+
 - 🔒 Scans for security vulnerabilities
 - 🔍 Analyzes code quality issues
 - 📊 Provides security reports in Security tab
@@ -53,11 +61,13 @@ This document describes all the GitHub Actions workflows configured for this pro
 ---
 
 ### 4. Lighthouse CI (`lighthouse.yml`)
+
 **Triggers:** Pull Requests
 
 **Purpose:** PWA performance, accessibility, and SEO testing
 
 **What it does:**
+
 - ⚡ Performance testing
 - ♿ Accessibility audits
 - 🎯 Best practices checks
@@ -71,11 +81,13 @@ This document describes all the GitHub Actions workflows configured for this pro
 ---
 
 ### 5. PR Labeler (`pr-labeler.yml`)
+
 **Triggers:** Pull Request opened/updated
 
 **Purpose:** Automatically labels PRs based on changed files
 
 **Labels Applied:**
+
 - `documentation` - Changes to .md files or docs/
 - `dependencies` - Changes to package.json or lock files
 - `ci/cd` - Changes to .github/
@@ -91,11 +103,13 @@ This document describes all the GitHub Actions workflows configured for this pro
 ---
 
 ### 6. Stale Issues/PRs (`stale.yml`)
+
 **Triggers:** Daily at midnight UTC, Manual dispatch
 
 **Purpose:** Automatically manages inactive issues and PRs
 
 **What it does:**
+
 - Issues: Marked stale after 60 days, closed after 7 more days
 - PRs: Marked stale after 30 days, closed after 7 more days
 - Exempts issues/PRs labeled: `pinned`, `security`, `enhancement` (issues only)
@@ -103,11 +117,13 @@ This document describes all the GitHub Actions workflows configured for this pro
 ---
 
 ### 7. Dependabot (`dependabot.yml`)
+
 **Triggers:** Weekly (Monday 2 AM)
 
 **Purpose:** Automated dependency updates
 
 **What it does:**
+
 - 📦 Weekly npm dependency updates
 - 🔄 Monthly GitHub Actions updates
 - 👥 Auto-assigns reviewer
@@ -121,6 +137,7 @@ This document describes all the GitHub Actions workflows configured for this pro
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 1. Enable GitHub Actions in your repository settings
 2. For deployment: Enable GitHub Pages with "GitHub Actions" source
 3. (Optional) Add secrets for Lighthouse CI persistent storage
@@ -143,6 +160,7 @@ This document describes all the GitHub Actions workflows configured for this pro
 ### Usage
 
 Most workflows run automatically. You can also:
+
 - **Manually trigger deploy:** Actions tab → Deploy to GitHub Pages → Run workflow
 - **Manually check stale items:** Actions tab → Mark stale issues and PRs → Run workflow
 
@@ -151,15 +169,19 @@ Most workflows run automatically. You can also:
 ## 🔧 Customization
 
 ### Adjusting Lighthouse Thresholds
+
 Edit `.github/lighthouse/lighthouse-config.json` to adjust performance thresholds.
 
 ### Changing Stale Timeouts
+
 Edit `.github/workflows/stale.yml` to adjust days before marking stale or closing.
 
 ### Adding More Labels
+
 Edit `.github/labeler.yml` to add custom label rules.
 
 ### Dependabot Schedule
+
 Edit `.github/dependabot.yml` to change update frequency or grouping.
 
 ---
@@ -176,14 +198,17 @@ Edit `.github/dependabot.yml` to change update frequency or grouping.
 ## ⚠️ Troubleshooting
 
 ### Deploy Fails
+
 - Ensure GitHub Pages is enabled with "GitHub Actions" source
 - Check workflow permissions are set to "Read and write"
 
 ### Lighthouse Fails
+
 - Check that the preview server starts correctly
 - Adjust `startServerReadyTimeout` if build is slow
 
 ### Dependabot PRs Not Appearing
+
 - Check Security → Dependabot is enabled
 - Ensure dependabot.yml is valid
 - Check repository insights for Dependabot activity
@@ -197,4 +222,3 @@ Edit `.github/dependabot.yml` to change update frequency or grouping.
 - [Dependabot Documentation](https://docs.github.com/en/code-security/dependabot)
 - [CodeQL Documentation](https://codeql.github.com/docs/)
 - [Lighthouse CI Documentation](https://github.com/GoogleChrome/lighthouse-ci)
-
