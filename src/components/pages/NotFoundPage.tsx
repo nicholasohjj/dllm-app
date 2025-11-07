@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useParams } from "react-router-dom";
 
-export default function CatchAllPage() {
+export default function NotFoundPage() {
   const { slug } = useParams<{ slug: string }>(); // Retrieve slug from params
   const [isDarkMode, setIsDarkMode] = useState(false);
 

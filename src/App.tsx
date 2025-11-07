@@ -1,9 +1,9 @@
-import { LaundryMonitorComponent } from "./components/laundry-monitor";
-import { Routes, Route } from "react-router-dom"; // Import Routes and Route
+import { LaundryMonitorComponent } from "@/components/laundry/LaundryMonitor";
+import { Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import AboutUs from "./components/about-us";
-import CatchAllPage from "./components/page";
-import { DarkModeProvider } from "./DarkModeContext";
+import AboutUs from "@/components/pages/AboutUs";
+import NotFoundPage from "@/components/pages/NotFoundPage";
+import { DarkModeProvider } from "@/contexts/DarkModeContext";
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
           {/* Define route paths and corresponding components */}
           <Route path="/" element={<LaundryMonitorComponent />} />
           <Route path="/about" element={<AboutUs />} />
-          <Route path="*" element={<CatchAllPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </DarkModeProvider>
     </>

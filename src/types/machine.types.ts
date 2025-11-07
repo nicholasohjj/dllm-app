@@ -1,4 +1,4 @@
-// types.ts
+// Machine types and interfaces
 
 export type Machine = {
   machineID: string; // Full ID (e.g., RVREB-W1)
