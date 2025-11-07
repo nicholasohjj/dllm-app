@@ -24,7 +24,7 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      ...prettierConfig.rules,
     },
   },
-  prettierConfig,
 )
