@@ -29,8 +29,8 @@ jobs:
       - name: Checkout target branch (not the PR merge ref)
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT_WORKFLOW }}   # uses PAT for all fetch/push
-          persist-credentials: true            # leaves auth in repo config
+          token: ${{ secrets.PAT_WORKFLOW }} # uses PAT for all fetch/push
+          persist-credentials: true # leaves auth in repo config
           # real branch name
           ref: ${{ steps.target.outputs.ref }}
           # you need history for rebase
@@ -50,7 +50,7 @@ jobs:
           GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
-          PAT: ${{ secrets.PAT_WORKFLOW }}   # must include: repo (or Contents write) + workflow
+          PAT: ${{ secrets.PAT_WORKFLOW }} # must include: repo (or Contents write) + workflow
           TARGET_BRANCH: ${{ steps.target.outputs.ref }}
         run: |
           git add -A

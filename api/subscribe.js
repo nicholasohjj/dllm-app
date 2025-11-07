@@ -6,7 +6,9 @@ const privateKey = process.env.VAPID_PRIVATE_KEY;
 const subject = process.env.VAPID_SUBJECT || "mailto:your-email@example.com";
 
 if (!publicKey || !privateKey) {
-  throw new Error("VAPID keys are not configured. Please set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY environment variables.");
+  throw new Error(
+    "VAPID keys are not configured. Please set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY environment variables."
+  );
 }
 
 WebPush.setVapidDetails(subject, publicKey, privateKey);
