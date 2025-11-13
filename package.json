@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "bun run lint && bun run format:check"
+    "check": "bun run lint && bun run format:check",
+    "generate-vapid": "node scripts/generate-vapid-keys.js"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.2",

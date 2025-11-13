@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { MapPin, RefreshCw, Search, Sun, Moon, Info, Bell } from "lucide-react";
+import { MapPin, RefreshCw, Search, Sun, Moon, Info, Bell, BellOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,10 +30,11 @@ import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.svg";
 import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useMachineSetup } from "@/hooks/useMachineSetup";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export function LaundryMonitorComponent() {
-  const [isSubscribed, setIsSubscribed] = useState(false);
   const { toast } = useToast();
+  const pushNotifications = usePushNotifications();
   const [machines, setMachines] = useState<Machine[]>(useMachineSetup());
   const [isFloorplanOpen, setIsFloorplanOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -96,15 +97,16 @@ export function LaundryMonitorComponent() {
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
   };
 
+  // Show error toast if push notification setup fails
   useEffect(() => {
-    if ("Notification" in window && "PushManager" in window) {
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.pushManager.getSubscription().then((subscription) => {
-          setIsSubscribed(!!subscription);
-        });
+    if (pushNotifications.error) {
+      toast({
+        title: "Notification Error",
+        description: pushNotifications.error,
+        variant: "destructive",
       });
     }
-  }, []);
+  }, [pushNotifications.error, toast]);
 
   useEffect(() => {
     // Check system preference for dark mode
@@ -172,76 +174,39 @@ export function LaundryMonitorComponent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const subscribeToPushNotifications = useCallback(async () => {
+  // Handle push notification subscription
+  const handleSubscribeToPushNotifications = useCallback(async () => {
     try {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        toast({
-          title: "Permission Denied",
-          description: "You need to enable notifications to subscribe.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setIsSubscribed(true);
+      await pushNotifications.subscribe();
       toast({
         title: "Subscribed",
-        description: "You will receive push notifications.",
+        description: "You will receive push notifications for machine updates.",
       });
     } catch (error) {
-      console.error("Subscription error:", error);
       toast({
-        title: "Error",
-        description: "Failed to subscribe to push notifications.",
+        title: "Subscription Failed",
+        description: error instanceof Error ? error.message : "Failed to subscribe to push notifications.",
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [pushNotifications, toast]);
 
-  // Push Notification unsubscription logic
-  const unsubscribeFromPushNotifications = useCallback(async () => {
+  // Handle push notification unsubscription
+  const handleUnsubscribeFromPushNotifications = useCallback(async () => {
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      if (subscription) {
-        await subscription.unsubscribe();
-
-        // Notify the server to remove the subscription
-        await sendUnsubscriptionToServer(subscription);
-
-        setIsSubscribed(false);
-        toast({
-          title: "Unsubscribed",
-          description: "You have unsubscribed from push notifications.",
-        });
-      }
-    } catch (error) {
-      console.error("Unsubscription error:", error);
+      await pushNotifications.unsubscribe();
       toast({
-        title: "Error",
-        description: "Failed to unsubscribe from push notifications.",
+        title: "Unsubscribed",
+        description: "You have unsubscribed from push notifications.",
+      });
+    } catch (error) {
+      toast({
+        title: "Unsubscription Failed",
+        description: error instanceof Error ? error.message : "Failed to unsubscribe from push notifications.",
         variant: "destructive",
       });
     }
-  }, [toast]);
-
-  const sendUnsubscriptionToServer = async (
-    subscription: PushSubscription | null
-  ) => {
-    if (!subscription) return; // Handle null case
-    try {
-      await fetch("/api/unsubscribe", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(subscription),
-      });
-    } catch (error) {
-      console.error("Failed to send unsubscription to the server:", error);
-    }
-  };
+  }, [pushNotifications, toast]);
 
   const togglePreferredMachine = (machineID: string) => {
     setPreferredMachines((prev) => {
@@ -454,14 +419,24 @@ export function LaundryMonitorComponent() {
               variant="outline"
               size="icon"
               onClick={
-                isSubscribed
-                  ? unsubscribeFromPushNotifications
-                  : subscribeToPushNotifications
+                pushNotifications.isSubscribed
+                  ? handleUnsubscribeFromPushNotifications
+                  : handleSubscribeToPushNotifications
+              }
+              disabled={!pushNotifications.isSupported || pushNotifications.isLoading}
+              title={
+                !pushNotifications.isSupported
+                  ? "Push notifications are not supported in this browser"
+                  : pushNotifications.isSubscribed
+                  ? "Unsubscribe from notifications"
+                  : "Subscribe to notifications"
               }
             >
-              <Bell
-                className={`h-4 w-4 ${isSubscribed ? "text-green-500" : ""}`}
-              />
+              {pushNotifications.isSubscribed ? (
+                <Bell className="h-4 w-4 text-green-500" />
+              ) : (
+                <BellOff className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </motion.header>
