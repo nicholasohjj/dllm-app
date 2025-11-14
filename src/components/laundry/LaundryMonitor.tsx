@@ -1,5 +1,15 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { MapPin, RefreshCw, Search, Sun, Moon, Info, Bell, Wifi, WifiOff } from "lucide-react";
+import {
+  MapPin,
+  RefreshCw,
+  Search,
+  Sun,
+  Moon,
+  Info,
+  Bell,
+  Wifi,
+  WifiOff,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -536,7 +546,11 @@ export function LaundryMonitorComponent() {
                 <WifiOff className="mr-2 h-4 w-4 text-red-500" />
               )}
               <span className="mr-2">
-                {isConnected ? "Connected" : isConnecting ? "Connecting..." : "Disconnected"}
+                {isConnected
+                  ? "Connected"
+                  : isConnecting
+                    ? "Connecting..."
+                    : "Disconnected"}
               </span>
               <span className="mx-2">•</span>
               Last updated: {formatLastUpdated(lastUpdated)}

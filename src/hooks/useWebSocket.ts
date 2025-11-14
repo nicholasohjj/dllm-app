@@ -97,7 +97,10 @@ export function useWebSocket({
         onClose?.();
 
         // Attempt to reconnect if we should
-        if (shouldReconnectRef.current && reconnectAttemptsRef.current < maxReconnectAttempts) {
+        if (
+          shouldReconnectRef.current &&
+          reconnectAttemptsRef.current < maxReconnectAttempts
+        ) {
           reconnectAttemptsRef.current += 1;
           console.log(
             `Attempting to reconnect (${reconnectAttemptsRef.current}/${maxReconnectAttempts})...`
@@ -119,7 +122,15 @@ export function useWebSocket({
         error: error as Event,
       }));
     }
-  }, [url, onMessage, onError, onOpen, onClose, reconnectInterval, maxReconnectAttempts]);
+  }, [
+    url,
+    onMessage,
+    onError,
+    onOpen,
+    onClose,
+    reconnectInterval,
+    maxReconnectAttempts,
+  ]);
 
   const disconnect = useCallback(() => {
     shouldReconnectRef.current = false;
@@ -166,4 +177,3 @@ export function useWebSocket({
     sendMessage,
   };
 }
-
