@@ -1,0 +1,27 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dllm-app
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    networks:
+      - dllm-network
+
+networks:
+  dllm-network:
+    driver: bridge
+# Optional: Add backend service if you have one
+# services:
+#   backend:
+#     image: your-backend-image
+#     container_name: dllm-backend
+#     ports:
+#       - "3000:3000"
+#     networks:
+#       - dllm-network
+
