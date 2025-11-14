@@ -1,5 +1,15 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { MapPin, RefreshCw, Search, Sun, Moon, Info, Bell } from "lucide-react";
+import {
+  MapPin,
+  RefreshCw,
+  Search,
+  Sun,
+  Moon,
+  Info,
+  Bell,
+  Wifi,
+  WifiOff,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,6 +40,7 @@ import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.svg";
 import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useMachineSetup } from "@/hooks/useMachineSetup";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 export function LaundryMonitorComponent() {
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -48,9 +59,32 @@ export function LaundryMonitorComponent() {
   const [showWelcomeScreen, setShowWelcomeScreen] = useState(false);
   const [preferredMachines, setPreferredMachines] = useState<string[]>([]);
   const lambdaUrl = import.meta.env.VITE_REACT_APP_LAMBDA_URL; // Access the Lambda URL from Vite environment variables
+  const wsUrl = import.meta.env.VITE_REACT_APP_WEBSOCKET_URL; // WebSocket URL from environment variables
 
-  // Fetch data from Lambda URL
+  // Convert HTTP/HTTPS URL to WebSocket URL if needed
+  const getWebSocketUrl = useCallback(() => {
+    if (wsUrl) {
+      return wsUrl;
+    }
+    // If no WebSocket URL is provided, try to derive it from Lambda URL
+    if (lambdaUrl) {
+      try {
+        const url = new URL(lambdaUrl);
+        const wsProtocol = url.protocol === "https:" ? "wss:" : "ws:";
+        // For API Gateway WebSocket, the URL structure might be different
+        // This is a fallback - ideally you should provide VITE_REACT_APP_WEBSOCKET_URL
+        return `${wsProtocol}//${url.host}${url.pathname}`;
+      } catch (error) {
+        console.error("Error converting URL to WebSocket URL:", error);
+        return null;
+      }
+    }
+    return null;
+  }, [lambdaUrl, wsUrl]);
+
+  // Fetch initial data from Lambda URL (fallback if WebSocket fails)
   const fetchMachineStatus = useCallback(async () => {
+    if (!lambdaUrl) return;
     try {
       const response = await fetch(lambdaUrl, {
         method: "GET",
@@ -60,8 +94,8 @@ export function LaundryMonitorComponent() {
       });
 
       if (!response.ok) {
-        const errorText = await response.text(); // Get response as text
-        console.error("Fetch error response:", errorText); // Log error response
+        const errorText = await response.text();
+        console.error("Fetch error response:", errorText);
         throw new Error("Failed to fetch machine data");
       }
 
@@ -76,15 +110,85 @@ export function LaundryMonitorComponent() {
     }
   }, [lambdaUrl]);
 
-  // Fetch machine data when the component mounts and every 5 minutes thereafter
+  // WebSocket connection for real-time updates
+  const { isConnected, isConnecting, sendMessage } = useWebSocket({
+    url: getWebSocketUrl(),
+    onMessage: (data) => {
+      console.log("WebSocket message received:", data);
+      // Handle different message formats
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "data" in data &&
+        Array.isArray((data as { data: Machine[] }).data)
+      ) {
+        // If the message has a data array (matching the fetch response format)
+        setMachines((data as { data: Machine[] }).data);
+        setLastUpdated(new Date());
+        setIsLoading(false);
+      } else if (Array.isArray(data)) {
+        // If the message is directly an array of machines
+        setMachines(data as Machine[]);
+        setLastUpdated(new Date());
+        setIsLoading(false);
+      } else if (
+        typeof data === "object" &&
+        data !== null &&
+        "machines" in data &&
+        Array.isArray((data as { machines: Machine[] }).machines)
+      ) {
+        // If the message has a machines property
+        setMachines((data as { machines: Machine[] }).machines);
+        setLastUpdated(new Date());
+        setIsLoading(false);
+      } else if (
+        typeof data === "object" &&
+        data !== null &&
+        "machine" in data &&
+        typeof (data as { machine: Machine }).machine === "object"
+      ) {
+        // If the message is a single machine update
+        const machineUpdate = (data as { machine: Machine }).machine;
+        setMachines((prev) => {
+          const updated = prev.map((m) =>
+            m.machineID === machineUpdate.machineID ? machineUpdate : m
+          );
+          return updated;
+        });
+        setLastUpdated(new Date());
+      }
+    },
+    onOpen: () => {
+      console.log("WebSocket connected");
+      setIsLoading(false);
+    },
+    onError: (error) => {
+      console.error("WebSocket error:", error);
+      // Fallback to HTTP polling if WebSocket fails
+      if (!isLoading) {
+        fetchMachineStatus();
+      }
+    },
+    onClose: () => {
+      console.log("WebSocket closed");
+    },
+    reconnectInterval: 3000,
+    maxReconnectAttempts: 10,
+  });
+
+  // Fetch initial data when component mounts (fallback if WebSocket is not available)
   useEffect(() => {
-    fetchMachineStatus(); // Fetch data when component mounts
+    if (!isConnected && !isConnecting && lambdaUrl) {
+      fetchMachineStatus();
+    }
+  }, [isConnected, isConnecting, lambdaUrl, fetchMachineStatus]);
 
-    const intervalId = setInterval(fetchMachineStatus, 30000); // Fetch every 5 minutes (300,000 ms)
-    setLastUpdated(new Date()); // Update last updated time
-
-    return () => clearInterval(intervalId); // Cleanup interval on component unmount
-  }, [fetchMachineStatus]);
+  // Request initial data via WebSocket when connected
+  useEffect(() => {
+    if (isConnected && sendMessage) {
+      sendMessage({ type: "getStatus" });
+    }
+  }, [isConnected, sendMessage]);
 
   const headerVariants = {
     hidden: { opacity: 0, y: -20 },
@@ -434,8 +538,21 @@ export function LaundryMonitorComponent() {
               </Button>
             </Link>
             <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-              {" "}
-              <RefreshCw className="mr-2 h-4 w-4" />
+              {isConnected ? (
+                <Wifi className="mr-2 h-4 w-4 text-green-500" />
+              ) : isConnecting ? (
+                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <WifiOff className="mr-2 h-4 w-4 text-red-500" />
+              )}
+              <span className="mr-2">
+                {isConnected
+                  ? "Connected"
+                  : isConnecting
+                    ? "Connecting..."
+                    : "Disconnected"}
+              </span>
+              <span className="mx-2">•</span>
               Last updated: {formatLastUpdated(lastUpdated)}
             </div>
             <div className="flex items-center space-x-2">
