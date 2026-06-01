@@ -1,4 +1,4 @@
-import { WebPush } from "web-push";
+import webPush from "web-push";
 
 // VAPID keys should be stored in environment variables
 const publicKey = process.env.VAPID_PUBLIC_KEY;
@@ -11,11 +11,15 @@ if (!publicKey || !privateKey) {
   );
 }
 
-WebPush.setVapidDetails(subject, publicKey, privateKey);
+webPush.setVapidDetails(subject, publicKey, privateKey);
 
 export default async (req, res) => {
   if (req.method === "POST") {
     const subscription = req.body;
+
+    if (!subscription?.endpoint) {
+      return res.status(400).json({ message: "Invalid push subscription" });
+    }
 
     // Store this subscription in your database, e.g., Firestore, DynamoDB, etc.
     // Here’s a mockup:

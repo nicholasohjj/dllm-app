@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "bun run lint && bun run format:check"
+    "check": "eslint . && prettier --check ."
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.2",

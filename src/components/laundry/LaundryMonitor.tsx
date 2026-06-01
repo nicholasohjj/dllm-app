@@ -42,6 +42,21 @@ import { useDarkMode } from "@/contexts/DarkModeContext";
 import { useMachineSetup } from "@/hooks/useMachineSetup";
 import { useWebSocket } from "@/hooks/useWebSocket";
 
+const urlBase64ToUint8Array = (base64String: string) => {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = `${base64String}${padding}`
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; i += 1) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+
+  return outputArray;
+};
+
 export function LaundryMonitorComponent() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const { toast } = useToast();
@@ -51,15 +66,16 @@ export function LaundryMonitorComponent() {
   const [selectedmachineID, setSelectedmachineID] = useState<string | null>(
     null
   );
-  const { isDarkMode, toggleDarkMode } = useDarkMode(); // Use the hook to access dark mode state
+  const { isDarkMode, setDarkMode } = useDarkMode();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("id");
   const [isLoading, setIsLoading] = useState(true);
   const [showWelcomeScreen, setShowWelcomeScreen] = useState(false);
   const [preferredMachines, setPreferredMachines] = useState<string[]>([]);
-  const lambdaUrl = import.meta.env.VITE_REACT_APP_LAMBDA_URL; // Access the Lambda URL from Vite environment variables
-  const wsUrl = import.meta.env.VITE_REACT_APP_WEBSOCKET_URL; // WebSocket URL from environment variables
+  const lambdaUrl = import.meta.env.VITE_REACT_APP_LAMBDA_URL;
+  const wsUrl = import.meta.env.VITE_REACT_APP_WEBSOCKET_URL;
+  const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
   // Convert HTTP/HTTPS URL to WebSocket URL if needed
   const getWebSocketUrl = useCallback(() => {
@@ -201,36 +217,25 @@ export function LaundryMonitorComponent() {
   };
 
   useEffect(() => {
-    if ("Notification" in window && "PushManager" in window) {
+    if (
+      "Notification" in window &&
+      "serviceWorker" in navigator &&
+      "PushManager" in window
+    ) {
+      let isMounted = true;
+
       navigator.serviceWorker.ready.then((registration) => {
         registration.pushManager.getSubscription().then((subscription) => {
-          setIsSubscribed(!!subscription);
+          if (isMounted) {
+            setIsSubscribed(!!subscription);
+          }
         });
       });
+
+      return () => {
+        isMounted = false;
+      };
     }
-  }, []);
-
-  useEffect(() => {
-    // Check system preference for dark mode
-    const darkModeMediaQuery = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    );
-
-    // Set the initial dark mode state based on system preference
-    toggleDarkMode();
-
-    // Listen for changes in the system preference and update accordingly
-    const handleDarkModeChange = () => {
-      toggleDarkMode();
-    };
-
-    darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
-
-    // Cleanup the event listener on component unmount
-    return () => {
-      darkModeMediaQuery.removeEventListener("change", handleDarkModeChange);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -241,42 +246,69 @@ export function LaundryMonitorComponent() {
   }, []);
 
   useEffect(() => {
-    document.body.classList.toggle("dark", isDarkMode);
-  }, [isDarkMode]);
-
-  useEffect(() => {
     const savedPreferences = localStorage.getItem("preferredMachines");
     if (savedPreferences) {
       setPreferredMachines(JSON.parse(savedPreferences));
     }
   }, []);
 
-  useEffect(() => {
-    // Check if the user has a saved preference
-    const savedDarkMode = localStorage.getItem("darkMode");
-    if (savedDarkMode) {
-      toggleDarkMode();
-    } else {
-      // If no preference is saved, use system preference
-      const darkModeMediaQuery = window.matchMedia(
-        "(prefers-color-scheme: dark)"
-      );
-      toggleDarkMode();
+  const sendSubscriptionToServer = useCallback(
+    async (subscription: PushSubscription) => {
+      const response = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(subscription),
+      });
 
-      // Listen for system preference changes
-      const handleDarkModeChange = () => {
-        toggleDarkMode();
-      };
-      darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
+      if (!response.ok) {
+        throw new Error("Failed to save push subscription");
+      }
+    },
+    []
+  );
 
-      return () => {
-        darkModeMediaQuery.removeEventListener("change", handleDarkModeChange);
-      };
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const sendUnsubscriptionToServer = useCallback(
+    async (subscription: PushSubscription) => {
+      const response = await fetch("/api/unsubscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(subscription),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to remove push subscription");
+      }
+    },
+    []
+  );
 
   const subscribeToPushNotifications = useCallback(async () => {
+    if (
+      !("Notification" in window) ||
+      !("serviceWorker" in navigator) ||
+      !("PushManager" in window)
+    ) {
+      toast({
+        title: "Notifications Unavailable",
+        description: "This browser does not support push notifications.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!vapidPublicKey) {
+      toast({
+        title: "Notifications Not Configured",
+        description: "Set VITE_VAPID_PUBLIC_KEY to enable notifications.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
@@ -287,6 +319,18 @@ export function LaundryMonitorComponent() {
         });
         return;
       }
+
+      const registration = await navigator.serviceWorker.ready;
+      const existingSubscription =
+        await registration.pushManager.getSubscription();
+      const subscription =
+        existingSubscription ??
+        (await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        }));
+
+      await sendSubscriptionToServer(subscription);
 
       setIsSubscribed(true);
       toast({
@@ -301,25 +345,31 @@ export function LaundryMonitorComponent() {
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [sendSubscriptionToServer, toast, vapidPublicKey]);
 
-  // Push Notification unsubscription logic
   const unsubscribeFromPushNotifications = useCallback(async () => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      setIsSubscribed(false);
+      return;
+    }
+
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
-      if (subscription) {
-        await subscription.unsubscribe();
 
-        // Notify the server to remove the subscription
-        await sendUnsubscriptionToServer(subscription);
-
+      if (!subscription) {
         setIsSubscribed(false);
-        toast({
-          title: "Unsubscribed",
-          description: "You have unsubscribed from push notifications.",
-        });
+        return;
       }
+
+      await sendUnsubscriptionToServer(subscription);
+      await subscription.unsubscribe();
+
+      setIsSubscribed(false);
+      toast({
+        title: "Unsubscribed",
+        description: "You have unsubscribed from push notifications.",
+      });
     } catch (error) {
       console.error("Unsubscription error:", error);
       toast({
@@ -328,24 +378,7 @@ export function LaundryMonitorComponent() {
         variant: "destructive",
       });
     }
-  }, [toast]);
-
-  const sendUnsubscriptionToServer = async (
-    subscription: PushSubscription | null
-  ) => {
-    if (!subscription) return; // Handle null case
-    try {
-      await fetch("/api/unsubscribe", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(subscription),
-      });
-    } catch (error) {
-      console.error("Failed to send unsubscription to the server:", error);
-    }
-  };
+  }, [sendUnsubscriptionToServer, toast]);
 
   const togglePreferredMachine = (machineID: string) => {
     setPreferredMachines((prev) => {
@@ -494,8 +527,7 @@ export function LaundryMonitorComponent() {
   );
 
   const handleDarkModeToggle = (checked: boolean) => {
-    toggleDarkMode();
-    localStorage.setItem("darkMode", checked.toString());
+    setDarkMode(checked);
   };
 
   return (

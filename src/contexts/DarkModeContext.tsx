@@ -1,71 +1,93 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
   ReactNode,
 } from "react";
 
-// Define the shape of the Dark Mode context
 interface DarkModeContextType {
   isDarkMode: boolean;
+  setDarkMode: (enabled: boolean) => void;
   toggleDarkMode: () => void;
 }
 
-// Provide a default value for the context
 const DarkModeContext = createContext<DarkModeContextType | undefined>(
   undefined
 );
 
 interface DarkModeProviderProps {
-  children: ReactNode; // Define the type for children
+  children: ReactNode;
 }
 
+const getStoredDarkMode = () => {
+  if (typeof window === "undefined") return null;
+
+  const savedDarkMode = localStorage.getItem("darkMode");
+  if (savedDarkMode === null) return null;
+  return savedDarkMode === "true";
+};
+
+const getSystemDarkMode = () =>
+  typeof window !== "undefined" &&
+  "matchMedia" in window &&
+  window.matchMedia("(prefers-color-scheme: dark)").matches;
+
 export const DarkModeProvider = ({ children }: DarkModeProviderProps) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [hasUserPreference, setHasUserPreference] = useState(
+    () => getStoredDarkMode() !== null
+  );
+  const [isDarkMode, setIsDarkModeState] = useState(
+    () => getStoredDarkMode() ?? getSystemDarkMode()
+  );
 
   useEffect(() => {
-    // Retrieve the saved dark mode preference from localStorage
-    const savedDarkMode = localStorage.getItem("darkMode");
+    if (hasUserPreference) return;
+    if (!("matchMedia" in window)) return;
 
-    if (savedDarkMode) {
-      setIsDarkMode(savedDarkMode === "true");
-    } else {
-      // If no preference is saved, use system preference
-      const darkModeMediaQuery = window.matchMedia(
-        "(prefers-color-scheme: dark)"
-      );
-      setIsDarkMode(darkModeMediaQuery.matches);
+    const darkModeMediaQuery = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    );
+    const handleDarkModeChange = (event: MediaQueryListEvent) => {
+      setIsDarkModeState(event.matches);
+    };
 
-      // Listen for system preference changes
-      const handleDarkModeChange = (event: MediaQueryListEvent) =>
-        setIsDarkMode(event.matches);
-      darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
+    darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
 
-      return () => {
-        darkModeMediaQuery.removeEventListener("change", handleDarkModeChange);
-      };
+    return () => {
+      darkModeMediaQuery.removeEventListener("change", handleDarkModeChange);
+    };
+  }, [hasUserPreference]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDarkMode);
+    document.body.classList.toggle("dark", isDarkMode);
+
+    if (hasUserPreference) {
+      localStorage.setItem("darkMode", isDarkMode.toString());
     }
+  }, [hasUserPreference, isDarkMode]);
+
+  const setDarkMode = useCallback((enabled: boolean) => {
+    setHasUserPreference(true);
+    setIsDarkModeState(enabled);
   }, []);
 
-  useEffect(() => {
-    // Save the user's dark mode preference in localStorage
-    localStorage.setItem("darkMode", isDarkMode.toString());
-    document.body.classList.toggle("dark", isDarkMode);
-  }, [isDarkMode]);
-
-  const toggleDarkMode = () => {
-    setIsDarkMode((prevMode) => !prevMode);
-  };
+  const toggleDarkMode = useCallback(() => {
+    setHasUserPreference(true);
+    setIsDarkModeState((prevMode) => !prevMode);
+  }, []);
 
   return (
-    <DarkModeContext.Provider value={{ isDarkMode, toggleDarkMode }}>
+    <DarkModeContext.Provider
+      value={{ isDarkMode, setDarkMode, toggleDarkMode }}
+    >
       {children}
     </DarkModeContext.Provider>
   );
 };
 
-// Custom hook to use dark mode state
 // eslint-disable-next-line react-refresh/only-export-components
 export const useDarkMode = () => {
   const context = useContext(DarkModeContext);

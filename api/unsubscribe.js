@@ -2,11 +2,15 @@ export default async (req, res) => {
   if (req.method === "POST") {
     const subscription = req.body;
 
+    if (!subscription?.endpoint) {
+      return res.status(400).json({ message: "Invalid push subscription" });
+    }
+
     // Remove this subscription from your database.
     // Here’s a mockup:
     await removeSubscriptionFromDatabase(subscription);
 
-    res.status(201).json({ message: "Unsubscribed" });
+    res.status(200).json({ message: "Unsubscribed" });
   } else {
     res.status(405).json({ message: "Method not allowed" });
   }
