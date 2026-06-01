@@ -1,122 +1,102 @@
-# DLLM App
+# DLLM Laundry Monitor
 
-A Progressive Web App (PWA) built with React, TypeScript, and Vite for laundry machine monitoring.
+React/Vite frontend for checking RVREB laundry machine status. The app shows
+washer and dryer cards, a floor-plan view, connection state, saved preferred
+machines, dark mode, and optional browser push notifications.
 
-## Features
+## Requirements
 
-- 🚀 Fast development with Vite
-- ⚛️ React 18 with TypeScript
-- 📱 Progressive Web App (PWA) support
-- 🎨 Modern UI with Tailwind CSS and Radix UI
-- 🔔 Web Push Notifications
-- 🌙 Dark mode support
-- 📊 Real-time laundry machine monitoring
+- Node.js 20 is the safest match for the Docker image.
+- npm is used by the documented commands. A `bun.lock` file is present, but the
+  package scripts are standard npm scripts.
 
-## Quick Start
-
-### Development
+## Local Setup
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173`
+Vite serves the app at `http://localhost:5173` by default.
 
-### Build for Production
+## Configuration
 
-```bash
-# Build the application
-npm run build
-
-# Preview production build locally
-npm run preview
-```
-
-## Deployment with Nginx
-
-This project includes full nginx support for production deployment. See the [Nginx Deployment Guide](docs/nginx-deployment.md) for detailed instructions.
-
-### Quick Deploy with Docker
+Create a local `.env` file when you need live machine data or push
+notifications:
 
 ```bash
-# Build and run with Docker Compose
-docker-compose up -d
-
-# Access the app at http://localhost
+VITE_REACT_APP_LAMBDA_URL=https://example.com/machines
+VITE_REACT_APP_WEBSOCKET_URL=wss://example.com/machines
+VITE_VAPID_PUBLIC_KEY=your_public_vapid_key
 ```
 
-### Manual Nginx Setup
+`VITE_REACT_APP_WEBSOCKET_URL` is preferred for live updates. If it is missing,
+the app tries to derive a WebSocket URL from `VITE_REACT_APP_LAMBDA_URL` and
+falls back to HTTP fetching when needed.
+
+The push subscription API also expects server-side VAPID variables:
 
 ```bash
-# Build the app
-npm run build
-
-# Copy nginx configuration
-sudo cp nginx.conf /etc/nginx/sites-available/dllm-app
-sudo ln -s /etc/nginx/sites-available/dllm-app /etc/nginx/sites-enabled/
-
-# Deploy files
-sudo mkdir -p /var/www/dllm-app
-sudo cp -r dist/* /var/www/dllm-app/
-sudo cp -r public/* /var/www/dllm-app/
-
-# Reload nginx
-sudo nginx -t
-sudo systemctl reload nginx
+VAPID_PUBLIC_KEY=your_public_vapid_key
+VAPID_PRIVATE_KEY=your_private_vapid_key
+VAPID_SUBJECT=mailto:you@example.com
 ```
 
-For more details, see [docs/nginx-deployment.md](docs/nginx-deployment.md)
+The current `api/subscribe.js` and `api/unsubscribe.js` handlers only validate
+and log subscriptions. Replace the mock database functions before relying on
+push notifications in production.
 
 ## Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint errors
-- `npm run format` - Format code with Prettier
-- `npm run format:check` - Check code formatting
-- `npm run check` - Run linting and format checks
-
-## Project Structure
-
-```
-dllm-app/
-├── api/                  # API endpoints
-├── docs/                 # Documentation
-├── public/               # Static assets
-│   ├── icons/           # PWA icons
-│   └── service-worker.js
-├── src/
-│   ├── components/      # React components
-│   ├── contexts/        # React contexts
-│   ├── hooks/           # Custom hooks
-│   ├── lib/             # Utilities
-│   └── types/           # TypeScript types
-├── nginx.conf           # Nginx configuration
-├── Dockerfile           # Docker configuration
-└── docker-compose.yml   # Docker Compose configuration
+```bash
+npm run dev           # Start Vite
+npm run build         # Type-check and build to dist/
+npm run preview       # Serve the production build locally
+npm run lint          # Run ESLint
+npm run lint:fix      # Run ESLint with fixes
+npm run format        # Format with Prettier
+npm run format:check  # Check Prettier formatting
+npm run check         # Run lint and format checks
 ```
 
-## Tech Stack
+## Production Build
 
-- **Frontend:** React 18, TypeScript
-- **Build Tool:** Vite
-- **Styling:** Tailwind CSS
-- **UI Components:** Radix UI
-- **Routing:** React Router
-- **Animations:** Framer Motion
-- **Web Server:** Nginx (production)
+```bash
+npm run build
+npm run preview
+```
 
-## Additional Documentation
+The build output goes to `dist/`. The app is a client-side routed SPA, so the
+web server should serve `index.html` for unknown routes.
 
-- [Web Push Setup Guide](docs/web-push-setup.md)
-- [Nginx Deployment Guide](docs/nginx-deployment.md)
+## Docker and Nginx
 
-## License
+The repository includes a Dockerfile and nginx config for static hosting:
 
-MIT
+```bash
+docker-compose up -d
+```
+
+That serves the built app on `http://localhost`. Static nginx hosting does not
+run the files in `api/`; proxy `/api/` to a backend if you deploy push
+subscription handlers separately.
+
+More detail:
+
+- [Nginx deployment](docs/nginx-deployment.md)
+- [Web push setup](docs/web-push-setup.md)
+
+## Project Layout
+
+```text
+api/                    Push subscription handlers
+docs/                   Deployment and web-push notes
+public/                 Icons, screenshot, and service worker
+src/components/laundry/ Main laundry monitor UI
+src/hooks/              Machine setup, WebSocket, and toast hooks
+src/contexts/           Dark mode context
+src/types/              Shared TypeScript types
+nginx.conf              Static hosting config
+Dockerfile              Production image
+docker-compose.yml      Local container runner
+```
